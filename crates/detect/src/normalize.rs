@@ -33,12 +33,42 @@ impl Normalized {
 
     /// Does the stem sequence contain this sequence of stems?
     pub fn contains_stems(&self, stems: &[String]) -> bool {
+        self.find_stems(stems).is_some()
+    }
+
+    /// Where this sequence of stems sits in the token stream, if it is there at all.
+    ///
+    /// The range matters because a term list can say which words name the object and
+    /// which name the action, but not that they have to be different words. Ukrainian
+    /// makes that gap expensive: "дзвони" (bells) and "дзвонять" (they ring) reduce to
+    /// the same stem, so a single spoken word satisfied both halves of the action gate
+    /// and "обладунки дзвонять" rang a church bell.
+    pub fn find_stems(&self, stems: &[String]) -> Option<std::ops::Range<usize>> {
+        self.find_stems_outside(stems, None)
+    }
+
+    /// `find_stems`, ignoring occurrences that overlap `exclude`.
+    ///
+    /// Every occurrence is considered, not just the first: "дзвони дзвонять" has the
+    /// same stem twice, and the second one is a perfectly good action word even though
+    /// the first is the object.
+    pub fn find_stems_outside(
+        &self,
+        stems: &[String],
+        exclude: Option<&std::ops::Range<usize>>,
+    ) -> Option<std::ops::Range<usize>> {
         if stems.is_empty() || stems.len() > self.stems.len() {
-            return false;
+            return None;
         }
         self.stems
             .windows(stems.len())
-            .any(|window| window == stems)
+            .enumerate()
+            .filter(|(_, window)| *window == stems)
+            .map(|(start, _)| start..start + stems.len())
+            .find(|span| match exclude {
+                Some(exclude) => span.end <= exclude.start || span.start >= exclude.end,
+                None => true,
+            })
     }
 
     /// Position of a stem in the token stream, if present.

@@ -169,6 +169,9 @@ fn open_door() -> EventDefinition {
             "прочинили",
             "розчиняє",
             "розчинив",
+            // Impersonal passive: "двері було відчинено".
+            "відчинено",
+            "відкрито",
             "розчахує",
             "розчахнув",
             "розчахнулися",
@@ -374,6 +377,13 @@ fn chest_open() -> EventDefinition {
             "зламав",
             "розкриває",
             "розкрив",
+            // "Скриню було відкрито" — the impersonal passive is how a Dungeon Master
+            // narrates something that has already happened, and it has no verb the
+            // stemmer can reach from "відкриває".
+            "відкрито",
+            "відчинено",
+            "відімкнено",
+            "зламано",
         ]),
         Term::negatives(&[
             // "chest" is a body part, and combat narration is full of it.
@@ -468,8 +478,6 @@ fn sword_swing() -> EventDefinition {
             "hacks",
             "cleaves",
             "parries",
-            "draws",
-            "unsheathes",
             "brings down",
             "whistles past",
             "б'є",
@@ -516,16 +524,11 @@ fn sword_swing() -> EventDefinition {
             "нападає",
             "напав",
             "кидається",
-            "вихоплює",
-            "вихопив",
-            "витягує",
-            "витягнув",
-            "дістає",
-            "дістав",
-            "виймає",
-            "вийняв",
-            "оголює",
-            "оголив",
+            // The verbs for *drawing* a blade — вихопив, витягнув, дістав, вийняв,
+            // оголив, draws, unsheathes — used to be here, from before SWORD_UNSHEATHE
+            // existed. They made "він витягнув свою шаблю" score 0.85 for both events at
+            // once, and which sound played came down to the order they were declared in.
+            // Drawing a sword is not swinging it.
         ]),
         Term::negatives(&[
             "lying on the table",
@@ -1466,6 +1469,8 @@ fn coins() -> EventDefinition {
             "висипав",
             "дзвенять",
             "задзвеніли",
+            "дзвонять",
+            "задзвонили",
             "брязкають",
             "брязнули",
             "брязкіт",
@@ -1576,6 +1581,8 @@ fn glass_shatter() -> EventDefinition {
             "розтрощив",
             "лопнуло",
             "лопнула",
+            "розбито",
+            "розтрощено",
             "дзенькнуло",
             "розсипалось",
             "потрощив",
@@ -2060,6 +2067,11 @@ fn sword_unsheathe() -> EventDefinition {
             "шабля",
             "шаблю",
             "шаблею",
+            "катана",
+            "катану",
+            "лезо",
+            "леза",
+            "лезом",
             "піхви",
             "піхов",
             "піхвах",
@@ -2287,6 +2299,14 @@ fn armor_clank() -> EventDefinition {
             "дзвенить",
             "дзвенять",
             "задзвеніли",
+            "задзвеніла",
+            // The дзвон- forms belong here rather than to BELL: armour is what people
+            // actually describe as ringing at the table.
+            "дзвонять",
+            "дзвонить",
+            "задзвонив",
+            "задзвонила",
+            "задзвонили",
             "гримить",
             "гримлять",
             "загриміли",
@@ -2709,6 +2729,17 @@ fn horse() -> EventDefinition {
             "наближаються",
             "зацокотіли",
             "зацокотів",
+            "проїхав",
+            "проїхала",
+            "проїхало",
+            "проїхали",
+            "проскакав",
+            "проскакали",
+            "промчав",
+            "промчали",
+            "промчало",
+            "проносяться",
+            "пронеслися",
             "застукотіли",
             "затупотіли",
             "загупали",
@@ -3297,6 +3328,9 @@ fn keys_lock() -> EventDefinition {
             "дзвенять",
             "дзвенить",
             "задзвеніли",
+            "дзвонять",
+            "дзвонить",
+            "задзвонили",
             "брязкають",
             "порпається",
             "колупається",
@@ -3668,15 +3702,19 @@ fn bell() -> EventDefinition {
             "ударив",
             "б'ють",
             "забив",
+            "забили",
+            "вдарили",
             "гудуть",
             "гуде",
             "загув",
             "загули",
-            "дзвонить",
-            "задзвонив",
-            "задзвонили",
-            "дзвенить",
-            "задзвенів",
+            // "дзвонить", "дзвенить" and their prefixed forms used to be here and are
+            // deliberately gone. Every piece of metal a party carries rings: armour,
+            // coins, keys, a blade on a shield. Whisper hears "обладунки дзвонять" and
+            // "броня задзвонила", and a church bell answered both — a keyword collision
+            // in one direction (дзвони/дзвонять share a stem) and the semantic layer in
+            // the other. A bell in narration is struck, tolled, boomed or raised in
+            // alarm; those verbs are below and they do not belong to anything else.
             "вибиває",
             "вибив",
             "лунає",

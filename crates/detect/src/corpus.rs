@@ -161,8 +161,10 @@ pub const POSITIVE: &[Case] = &[
     fires("Орк рубонув шаблею по щиту.", "SWORD_SWING"),
     fires("Лицар заносить клинок над тобою.", "SWORD_SWING"),
     fires("Він встромив меч у землю.", "SWORD_SWING"),
-    fires("Розбійник вихопив катану.", "SWORD_SWING"),
-    fires("Вона оголила лезо.", "SWORD_SWING"),
+    // Drawing, not swinging. These two expected SWORD_SWING from before the draw had
+    // an event of its own, and the expectation outlived the reason for it.
+    fires("Розбійник вихопив катану.", "SWORD_UNSHEATHE"),
+    fires("Вона оголила лезо.", "SWORD_UNSHEATHE"),
     fires("Стрілець натягнув тятиву.", "BOW_SHOT"),
     fires("Болт просвистів над головою.", "BOW_SHOT"),
     fires("Стріла вп'ялася в дерево.", "BOW_SHOT"),
@@ -314,6 +316,20 @@ pub const POSITIVE: &[Case] = &[
     fires("Дощ полив як з відра.", "RAIN"),
     fires("Дзвони забили на сполох.", "BELL"),
     fires("Ви входите до корчми, всередині гамірно.", "TAVERN"),
+    // --- Narration recorded at a real table, from the session log. Whisper's output,
+    // not idealised prose: these are the lines that were spoken and missed.
+    fires("Обладунки дзвонять.", "ARMOR_CLANK"),
+    fires("Броня задзвонила.", "ARMOR_CLANK"),
+    fires("Лати задзвонили.", "ARMOR_CLANK"),
+    fires("Монети дзвонять у гаманці.", "COINS"),
+    // The impersonal passive. A Dungeon Master narrating what has already happened
+    // reaches for it constantly, and not one event could match it.
+    fires("Скриню було відкрито.", "CHEST_OPEN"),
+    fires("Двері було відчинено.", "OPEN_DOOR"),
+    fires("Вікно було розбито.", "GLASS_SHATTER"),
+    fires("Декілька коней проїхало повз.", "HORSE"),
+    // Drawing a blade, which SWORD_SWING used to claim just as strongly.
+    fires("Він витягнув свою шаблю.", "SWORD_UNSHEATHE"),
 ];
 
 /// Narration that must stay silent. These are the cases that ruin a session when they
@@ -325,6 +341,10 @@ pub const NEGATIVE: &[Case] = &[
     silent("There is a door at the end of the corridor."),
     silent("The door is locked and will not budge."),
     silent("Меч лежить на столі."),
+    // Metal rings, and a church bell is not what rang. BELL lists "дзвони" as an
+    // object; "дзвонить" stems to the same thing, and one word used to answer for both.
+    silent("Він дзвонить другові."),
+    silent("Дзвін висить на дзвіниці."),
     silent("У кінці коридору ви бачите двері."),
     // Description of an image, not the thing itself.
     silent("There is a painted door on the far wall."),

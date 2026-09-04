@@ -18,6 +18,7 @@
 //! signals stay weak — an important property when the cost of a wrong sound is high.
 
 use std::collections::{HashMap, HashSet};
+use std::ops::Range;
 
 use serde::Serialize;
 
@@ -446,18 +447,44 @@ impl Detector {
             });
         }
 
+        // Whether any action word is present at all. This only ranks the fuzzy layer
+        // against the keyword one below; the action that actually opens the gate is
+        // chosen afterwards, once the keyword is known, because it must be a different
+        // word from the keyword.
+        let any_action = prepared
+            .actions
+            .iter()
+            .any(|action| normalized.contains_stems(action));
+
+        let (mut score, layer, span, keyword_span) =
+            self.best_layer(prepared, normalized, semantic_similarity, any_action)?;
+
+        // "Обладунки дзвонять" was ringing a church bell: BELL lists "дзвони" as an
+        // object and "дзвонить" as an action, both of which stem to дзвон, so the one
+        // spoken verb answered both halves of the gate. An action has to be done to the
+        // object by some *other* word.
         let action_word = prepared
             .actions
             .iter()
-            .find(|action| normalized.contains_stems(action))
+            .find(|action| {
+                normalized
+                    .find_stems_outside(action, keyword_span.as_ref())
+                    .is_some()
+            })
+            .or_else(|| {
+                // Unless the event declares that one word is both. SCREAM's objects are
+                // its own verbs — "заверещала" is the thing and the doing of it, and
+                // there is no second word to point at. The event says so by listing the
+                // same term as a keyword and as an action, which is a decision someone
+                // made, not a stemmer accident: BELL's "дзвони" and "дзвонить" are two
+                // different entries that happen to collapse together, and stay barred.
+                let stems = &normalized.stems[keyword_span.clone()?];
+                prepared
+                    .actions
+                    .iter()
+                    .find(|action| action.as_slice() == stems)
+            })
             .map(|action| action.join(" "));
-
-        let (mut score, layer, span) = self.best_layer(
-            prepared,
-            normalized,
-            semantic_similarity,
-            action_word.is_some(),
-        )?;
 
         // A bare keyword match and a semantic match both need the action gate. A phrase
         // match does not: the phrase itself already describes the action. Semantic
@@ -519,24 +546,37 @@ impl Detector {
     /// picked a fuzzy match worth 0.70 over a keyword match worth 0.55 + 0.30 = 0.85 —
     /// "небо розколола блискавиця" was a near-miss on a written phrase and an exact hit
     /// on a keyword with a verb, and the near-miss won and fell below the threshold.
+    ///
+    /// The fourth element is where the keyword sat, for the layers that matched on one.
+    /// The caller needs it to keep an action word from being the keyword itself.
     fn best_layer(
         &self,
         prepared: &Prepared,
         normalized: &Normalized,
         semantic_similarity: Option<f32>,
         has_action: bool,
-    ) -> Option<(f32, MatchLayer, String)> {
+    ) -> Option<(f32, MatchLayer, String, Option<Range<usize>>)> {
         if let Some(phrase) = prepared
             .exact_phrases
             .iter()
             .find(|phrase| normalized.contains_phrase(phrase))
         {
-            return Some((SCORE_EXACT_PHRASE, MatchLayer::ExactPhrase, phrase.clone()));
+            return Some((
+                SCORE_EXACT_PHRASE,
+                MatchLayer::ExactPhrase,
+                phrase.clone(),
+                None,
+            ));
         }
 
         for (stems, original) in prepared.phrase_stems.iter().zip(&prepared.exact_phrases) {
             if normalized.contains_stems(stems) {
-                return Some((SCORE_STEM_PHRASE, MatchLayer::StemPhrase, original.clone()));
+                return Some((
+                    SCORE_STEM_PHRASE,
+                    MatchLayer::StemPhrase,
+                    original.clone(),
+                    None,
+                ));
             }
         }
 
@@ -552,7 +592,7 @@ impl Detector {
         let keyword = prepared
             .keywords
             .iter()
-            .find(|keyword| normalized.contains_stems(keyword));
+            .find_map(|keyword| normalized.find_stems(keyword).map(|span| (keyword, span)));
 
         if best_fuzzy >= FUZZY_FLOOR {
             // Map 0.80..1.00 similarity onto 0.60..0.85 confidence, so a fuzzy match is
@@ -561,12 +601,17 @@ impl Detector {
 
             let keyword_total = SCORE_KEYWORD + if has_action { ACTION_BONUS } else { 0.0 };
             if keyword.is_none() || confidence >= keyword_total {
-                return Some((confidence, MatchLayer::Fuzzy, best_phrase));
+                return Some((confidence, MatchLayer::Fuzzy, best_phrase, None));
             }
         }
 
-        if let Some(keyword) = keyword {
-            return Some((SCORE_KEYWORD, MatchLayer::Keyword, keyword.join(" ")));
+        if let Some((keyword, span)) = keyword {
+            return Some((
+                SCORE_KEYWORD,
+                MatchLayer::Keyword,
+                keyword.join(" "),
+                Some(span),
+            ));
         }
 
         // Nothing matched literally. The semantic layer is the last chance, and the only
@@ -580,6 +625,7 @@ impl Detector {
             confidence.clamp(SEMANTIC_MIN_SCORE, SEMANTIC_MAX_SCORE),
             MatchLayer::Semantic,
             format!("semantic {similarity:.2}"),
+            None,
         ))
     }
 
