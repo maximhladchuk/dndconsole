@@ -1,22 +1,53 @@
-# Installing dndsound
+# Встановлення dndsound
 
-There is no signed installer yet, so the application is built from source. On a machine
-that already has the tools this takes about ten minutes, most of which is Rust compiling
-whisper.cpp the first time.
-
-Everything below was done on **macOS 26.6 (Apple Silicon)**. Linux and Windows are not
-tested; the notes at the end say what would have to change.
+Готового підписаного інсталятора поки немає — програма збирається з коду. На машині, де
+вже є потрібні інструменти, це займає хвилин десять, більшість із яких Rust уперше
+компілює whisper.cpp.
 
 ---
 
-## 1. Install the tools
+## Системні вимоги
 
-| Tool | Version | Why |
+Усі числа нижче виміряні, а не взяті зі стелі: `cargo run --release -p dndsound-pipeline
+--example bench`, деталі в [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
+
+| | Мінімум | Комфортно |
 |---|---|---|
-| Xcode Command Line Tools | any current | C/C++ toolchain for whisper.cpp |
-| Rust | 1.98 or newer | the backend |
-| CMake | 3.20 or newer | builds whisper.cpp |
-| Node.js | **22.12+** (22.21.1 is pinned) | the interface |
+| **Оперативна пам’ять** | 8 ГБ | 16 ГБ |
+| **Місце на диску** | 2 ГБ для готової програми | 25 ГБ, якщо збираєш із коду |
+| **Процесор** | 4 ядра | 8 ядер, або GPU з Metal |
+| **Мікрофон** | будь-який | окремий, не вбудований у ноутбук |
+| **Інтернет** | лише для встановлення | не потрібен під час гри |
+
+Звідки ці числа:
+
+* **Пам’ять.** Пік роботи розпізнавання — **1.6 ГБ** з Metal, **1.8 ГБ** без нього.
+  Плюс сама програма з інтерфейсом. На 8 ГБ працює, на 4 ГБ — ні.
+* **Диск.** Моделі займають **575 МБ** обов’язкових плюс **325 МБ** необов’язкових,
+  звуки — близько **13 МБ**. Тека з даними на цій машині: 915 МБ. Якщо збираєш із коду,
+  тека `target/` розростається до ~19 ГБ.
+* **Процесор.** На Apple Silicon з Metal речення розпізнається за **0.86 с**. Той самий
+  процесор без Metal — **2.3 с**. Обидва швидші за реальний час, тобто програма встигає
+  за безперервною мовою; різниця в тому, коли саме лунає звук.
+
+### Що дає Metal, і що буде без нього
+
+Metal є лише на macOS. На Windows і Linux whisper.cpp рахує на процесорі.
+
+|  | macOS (Metal) | Процесор |
+|---|---|---|
+| Звук після кінця речення | ~0.9 с | ~2.3 с |
+| Звук **посеред** речення | працює | не встигає |
+
+Розпізнавання посеред речення потребує повторного розбору кожні 400 мс, а швидка модель
+на процесорі потребує 527 мс — черга росте замість того, щоб розсмоктуватись. Тому на
+Windows звук лунає, коли ти договорив фразу, а не поки говориш.
+
+---
+
+## macOS
+
+### 1. Інструменти
 
 ```sh
 xcode-select --install
@@ -24,140 +55,180 @@ xcode-select --install
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 . "$HOME/.cargo/env"
 
-brew install cmake
-brew install nvm    # or install Node 22 however you prefer
+brew install cmake node
 ```
 
-Node 20.11 is **too old** — Vite 7 fails on it with `crypto.hash is not a function`. The
-repository pins the version in `.nvmrc`, so `nvm use` picks the right one.
+Node має бути **22.12 або новіший**. На Node 20.11 збірка падає з
+`crypto.hash is not a function`. Потрібна версія записана у `.nvmrc`, тож якщо
+користуєшся nvm — просто `nvm use`.
 
-The project uses **npm**. `pnpm` via corepack fails on this machine with
+Проєкт зібраний на **npm**. `pnpm` через corepack тут падає з
 `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING`.
 
-## 2. Get the code and its dependencies
+### 2. Код
 
 ```sh
 git clone https://github.com/maximhladchuk/dndconsole.git
 cd dndconsole
-
-nvm use          # Node 22.21.1, from .nvmrc
 npm install
 ```
 
-## 3. Run it
+### 3. Запуск
 
 ```sh
 npm run tauri dev
 ```
 
-The first build compiles whisper.cpp and the whole Rust workspace — expect several
-minutes and a lot of output. Later runs start in seconds.
+Перша збірка компілює whisper.cpp і весь Rust — це кілька хвилин і багато тексту в
+терміналі. Наступні запуски — секунди.
 
-To build a distributable application instead:
+Щоб зібрати готовий застосунок:
 
 ```sh
 npm run tauri build
 ```
 
-The result lands in `src-tauri/target/release/bundle/` — a `.app` and a `.dmg`.
+Результат — `.app` і `.dmg` у `src-tauri/target/release/bundle/`.
 
-> An unsigned build will be refused by Gatekeeper on another Mac. Until the app is
-> signed and notarised, right-click the `.app` → **Open** on first launch, or run
-> `xattr -dr com.apple.quarantine /path/to/dndsound.app`.
-
-## 4. First launch — the Setup tab
-
-The application opens on **Setup**, which is an ordered checklist. Work down it:
-
-1. **Voice detection model** — Silero VAD, about 2 MB. Required. It is what decides when
-   someone is speaking, so nothing works without it.
-2. **Speech model** — Whisper `large-v3-turbo-q5_0`, about 570 MB. Required. There is no
-   choice of model on purpose: this is the best one that keeps up in real time on Apple
-   Silicon.
-3. **Sounds** — about 220 public-domain sounds fetched once from Freesound. After this the
-   application never needs the network again.
-4. **Microphone** — macOS asks for permission the first time a session starts. If you
-   miss the prompt, grant it in **System Settings › Privacy & Security › Microphone**.
-
-Steps 1–3 download over the network and can be re-run safely; a file that is already
-present and verified is not fetched again.
-
-The optional step at the bottom (a small embedding model plus a faster Whisper) improves
-matching and lets sounds fire mid-sentence. Everything works without it.
-
-## 5. Use it
-
-* **Session** — press *Start listening* and narrate. Transcripts, detections and played
-  sounds appear as they happen.
-* **Events** — the phrases each event listens for. They ship in code and you can change
-  them; the moment you edit one, it stops being overwritten by updates.
-* **Sounds** — the themed groups and what is in each. Read-only: sounds arrive from the
-  pack, not from your disk.
-* **Settings** — volumes, language, sensitivity, and **"Ignore the microphone while a
-  sound is playing"**. Leave that on if you use speakers — otherwise a thunderclap the
-  app plays is heard by the microphone and can trigger another sound. Turn it off on
-  headphones, where there is no loop and speech during a sound would be lost for nothing.
-
-### Pick a language
-
-Settings › Speech › Language. Choosing **Українська** or **English** instead of
-*Auto detect* makes recognition roughly **four times faster**: detecting the language
-costs a full encoder pass over every sentence. Auto is only worth it if you switch
-languages mid-session.
+> Непідписану збірку Gatekeeper на чужому Mac не пустить. Поки програма не підписана й не
+> нотаризована: правий клік на `.app` → **Відкрити**, або
+> `xattr -dr com.apple.quarantine /шлях/до/dndsound.app`.
 
 ---
 
-## Where things are kept
+## Windows
+
+> **Чесно про стан:** на Windows це не перевірено. Складання залежностей для
+> `x86_64-pc-windows-msvc` проходить, чисті Rust-крейти під Windows компілюються, і
+> блокер із Metal прибрано — але я не збирав програму на Windows і не запускав її там.
+> Кроки нижче — це те, чого вимагають ці залежності, а не те, що хтось пройшов від
+> початку до кінця.
+
+### 1. Інструменти
+
+1. **Visual Studio Build Tools** — [завантажити](https://visualstudio.microsoft.com/downloads/),
+   у інсталяторі обрати **Desktop development with C++** (це дає компілятор MSVC і
+   Windows SDK). Потрібне для whisper.cpp, ONNX Runtime і SQLite.
+2. **Rust** — [rustup.rs](https://rustup.rs/), стандартний варіант із
+   `stable-x86_64-pc-windows-msvc`.
+3. **CMake** — [cmake.org/download](https://cmake.org/download/), під час встановлення
+   обрати «Add CMake to the system PATH».
+4. **Node.js 22 LTS** — [nodejs.org](https://nodejs.org/).
+5. **WebView2** — на Windows 10 і 11 вже стоїть. Якщо ні,
+   [Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/).
+
+Перевірка, що все на місці — у PowerShell:
+
+```powershell
+rustc --version
+cmake --version
+node --version
+```
+
+### 2. Код і запуск
+
+```powershell
+git clone https://github.com/maximhladchuk/dndconsole.git
+cd dndconsole
+npm install
+npm run tauri dev
+```
+
+Готовий інсталятор:
+
+```powershell
+npm run tauri build
+```
+
+Результат — `.msi` і `.exe` у `src-tauri\target\release\bundle\`.
+
+### Чого чекати від Windows
+
+* Звук лунає **після** фрази, не посеред неї — див. таблицю вище.
+* Розпізнавання йде на процесорі, тож ноутбук гріється й крутить кулер сильніше, ніж на
+  Mac.
+* Мікрофон дозволяється в **Параметри › Конфіденційність і захист › Мікрофон**, і треба
+  ввімкнути і загальний доступ для застосунків, і саму програму.
+
+---
+
+## Перший запуск — вкладка «Налаштування»
+
+Програма відкривається на вкладці **Налаштування**, і це впорядкований чекліст. Йди
+згори вниз:
+
+1. **Чути, коли ти говориш** — модель Silero, 1.3 МБ. Обов’язково. Саме вона вирішує,
+   коли хтось говорить; без неї не працює нічого.
+2. **Розуміти слова** — Whisper `large-v3-turbo-q5_0`, 574 МБ. Обов’язково. Вибору моделі
+   немає навмисно: це найкраще, що встигає за живою мовою.
+3. **Самі звуки** — 218 звуків із суспільного надбання, ~13 МБ, завантажуються з
+   Freesound один раз. Після цього інтернет не потрібен.
+4. **Мікрофон** — система запитає дозвіл, коли почнеш першу сесію.
+5. **Краще розпізнавання** *(необов’язково)* — 325 МБ. Дає розуміння фраз, у яких немає
+   жодного зі вказаних слів, і швидке розпізнавання посеред речення.
+
+Кроки 1–3 і 5 качають файли з мережі. Повторний запуск безпечний: те, що вже є і
+пройшло перевірку, не завантажується вдруге.
+
+## Далі
+
+* **Сесія** — тисни «Почати сесію» і розповідай. Розпізнаний текст, спрацювання й звуки
+  з’являються тут же.
+* **Події** — фрази, на які реагує кожна подія. Біля кожного поля є «?» з поясненням, як
+  рахуються бали. Змінені тобою події перестають перезаписуватись оновленнями.
+* **Звуки** — тематичні групи й те, що в них. Лише читання: звуки беруться з набору, не
+  з твого диска.
+* **Параметри** — гучності, мова, чутливість і **«Не слухати мікрофон, поки грає звук»**.
+  Лишай увімкненим, якщо звук іде з колонок: інакше грім, який програла програма, чути
+  мікрофону і він може запустити ще один звук. У навушниках вимкни — там петлі немає, а
+  сказане поверх звуку інакше втрачається дарма.
+
+### Обери мову
+
+Параметри › Мова › **Українська** або **English** замість «Визначати автоматично».
+Це приблизно **вчетверо швидше**: визначення мови коштує повного проходу кодувальника по
+кожному реченню. Автоматично варто лишати, тільки якщо справді перемикаєш мову посеред
+сесії.
+
+---
+
+## Де що лежить
+
+**macOS**
 
 ```
 ~/Library/Application Support/com.maximhladchuk.dndsound/
-  dndsound.db      settings, events, sound groups
-  models/          downloaded models
-  library/         the downloaded sound pack
+  dndsound.db      налаштування, події, групи звуків
+  models/          завантажені моделі
+  library/         завантажений набір звуків
 ```
 
-Deleting that directory resets the application to a fresh install.
+**Windows**
 
-## Running the tests
-
-```sh
-. "$HOME/.cargo/env"
-
-cargo test                                  # Rust workspace
-cargo clippy --all-targets --all-features
-cargo fmt --check
-
-npm test          # frontend
-npm run typecheck
-npm run lint
+```
+%APPDATA%\com.maximhladchuk.dndsound\
 ```
 
-Some tests open the real microphone, play real audio and transcribe real speech; they
-skip themselves when the hardware or the models are absent rather than failing.
+Видалення цієї теки повертає програму до стану щойно встановленої.
 
-## Privacy
+## Приватність
 
-Microphone audio never leaves the machine, and there is no telemetry. The only network
-traffic is downloading models and the sound pack, both of which happen once and are
-visible as steps you press.
+Звук із мікрофона не залишає комп’ютер, телеметрії немає. Єдиний мережевий трафік —
+завантаження моделей і набору звуків, і те й те відбувається один раз і лише тоді, коли
+ти сам натиснеш кнопку.
 
-## Other platforms
+## Якщо не працює
 
-Linux and Windows are not tested. What would need attention:
-
-* whisper.cpp is built with **Metal** here; on other platforms it falls back to CPU or
-  needs a different acceleration backend.
-* `cpal` picks a different host API (ALSA/PulseAudio, WASAPI), so device naming and
-  permissions differ.
-* Tauri needs its own [platform prerequisites](https://v2.tauri.app/start/prerequisites/).
-
-## Troubleshooting
-
-| Symptom | Cause |
+| Симптом | Причина |
 |---|---|
-| `crypto.hash is not a function` during `npm install` or dev | Node is too old. `nvm use`. |
-| `cargo: command not found` in a new shell | rustup was installed without touching PATH. Run `. "$HOME/.cargo/env"` or add `~/.cargo/bin` to your profile. |
-| Build fails in `whisper-rs-sys` | CMake or the Xcode Command Line Tools are missing. |
-| *Start listening* says the model is missing | Step 1 or 2 of Setup has not finished. |
-| Nothing triggers, but transcripts appear | Look in **Events** — the phrase you used may not be listed. Turn on Debug Mode in Settings to see every rejected candidate and why. |
-| The app plays a sound and then immediately plays another | Turn on "Ignore the microphone while a sound is playing" in Settings. |
+| `crypto.hash is not a function` | Застарий Node. Потрібен 22.12+. |
+| `cargo: command not found` у новому терміналі | rustup не чіпав PATH. `. "$HOME/.cargo/env"` або додай `~/.cargo/bin` у профіль. |
+| Збірка падає в `whisper-rs-sys` | Немає CMake або компілятора C++ (Xcode CLT на macOS, Build Tools на Windows). |
+| «Почати сесію» каже, що моделі немає | Крок 1 або 2 у «Налаштуваннях» не завершився. |
+| Текст розпізнається, але нічого не грає | Дивись **Події** — можливо, твоєї фрази немає в списках. Увімкни «Режим діагностики» в Параметрах: він показує кожного кандидата й причину відмови. |
+| Програма грає звук і одразу ще один | Увімкни «Не слухати мікрофон, поки грає звук». |
+| Звук лунає лише після кінця фрази | Це очікувано без Metal. Див. таблицю вище. |
+
+## Розробка
+
+Робочий процес, тести й інструменти — у [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).

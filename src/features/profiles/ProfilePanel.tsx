@@ -21,7 +21,7 @@ export function ProfilePanel({ profiles, onActivate, onCreate, onDelete }: Profi
   };
 
   return (
-    <Panel title="Campaigns" subtitle="Each campaign scopes its own events and tuning">
+    <Panel title="Кампанії" subtitle="Кожна кампанія має власні події й налаштування">
       <ul className="profiles">
         {profiles.map((profile) => (
           <li key={profile.id} className={profile.isActive ? 'profiles__item is-active' : 'profiles__item'}>
@@ -33,7 +33,7 @@ export function ProfilePanel({ profiles, onActivate, onCreate, onDelete }: Profi
               type="button"
               className="profiles__delete"
               onClick={() => onDelete(profile.id)}
-              aria-label={`Delete ${profile.name}`}
+              aria-label={`Видалити ${profile.name}`}
             >
               ×
             </button>
@@ -45,14 +45,14 @@ export function ProfilePanel({ profiles, onActivate, onCreate, onDelete }: Profi
         <input
           type="text"
           value={name}
-          placeholder="New campaign name"
+          placeholder="Назва нової кампанії"
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') submit();
           }}
         />
         <button type="button" onClick={submit} disabled={!name.trim()}>
-          Add
+          Додати
         </button>
       </div>
     </Panel>

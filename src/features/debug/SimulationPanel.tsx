@@ -26,27 +26,27 @@ export function SimulationPanel() {
   const best = result?.detection.candidates.find((candidate) => candidate.accepted) ?? null;
 
   return (
-    <Panel title="Simulate" subtitle="Type narration and run it through the real detector">
+    <Panel title="Перевірка текстом" subtitle="Напиши оповідь і пропусти її через справжній детектор">
       <div className="library__actions">
         <input
           type="text"
           value={text}
-          placeholder="The knight swings his sword at you."
+          placeholder="Лицар махнув мечем."
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') run();
           }}
-          aria-label="Narration to simulate"
+          aria-label="Текст для перевірки"
         />
         <button type="button" onClick={run} disabled={!text.trim() || simulating}>
-          {simulating ? '…' : 'Run'}
+          {simulating ? '…' : 'Перевірити'}
         </button>
       </div>
 
       <label className="field field--toggle">
         <input type="checkbox" checked={play} onChange={(e) => setPlay(e.target.checked)} />
         <span>
-          <span className="field__label">Play the sound too</span>
+          <span className="field__label">Ще й програти звук</span>
         </span>
       </label>
 
@@ -58,7 +58,7 @@ export function SimulationPanel() {
               {result.played.length > 0 ? ` → ${result.played.join(', ')}` : ''}
             </p>
           ) : (
-            <p className="simulation__miss">No event fired.</p>
+            <p className="simulation__miss">Жодна подія не спрацювала.</p>
           )}
 
           <ul className="candidates">
@@ -77,7 +77,7 @@ export function SimulationPanel() {
 
           {result.decision.suppressed.length > 0 ? (
             <p className="simulation__miss">
-              Suppressed: {result.decision.suppressed.map((s) => s.eventId).join(', ')}
+              Придушено: {result.decision.suppressed.map((s) => s.eventId).join(', ')}
             </p>
           ) : null}
         </div>
@@ -91,14 +91,14 @@ function explain(rejection: RejectionReason | null): string {
   if (!rejection) return '';
   switch (rejection.reason) {
     case 'belowThreshold':
-      return 'below threshold';
+      return 'нижче порога';
     case 'negativePhrase':
-      return `negative: ${rejection.detail}`;
+      return `заперечення: ${rejection.detail}`;
     case 'noActionWord':
-      return 'no action word';
+      return 'немає слова дії';
     case 'framedAsMemoryOrHypothesis':
-      return `memory: ${rejection.detail}`;
+      return `спогад або припущення: ${rejection.detail}`;
     case 'disabled':
-      return 'disabled';
+      return 'вимкнено';
   }
 }

@@ -71,7 +71,7 @@ pub fn import_sound_directory(state: State<'_, AppState>, path: String) -> Res<I
 pub fn rename_sound(state: State<'_, AppState>, id: i64, name: String) -> Res<Sound> {
     let name = name.trim().to_string();
     if name.is_empty() {
-        return Err(CommandError::new("invalidInput", "A sound needs a name."));
+        return Err(CommandError::new("invalidInput", "Звуку потрібна назва."));
     }
     state.with_db(|db| Ok(db.sounds().rename(id, &name)?))
 }
@@ -81,7 +81,7 @@ pub fn set_sound_volume(state: State<'_, AppState>, id: i64, volume: f32) -> Res
     if !(0.0..=1.0).contains(&volume) || !volume.is_finite() {
         return Err(CommandError::new(
             "invalidInput",
-            "Sound volume must be between 0 and 1.",
+            "Гучність звуку має бути від 0 до 1.",
         ));
     }
     state.with_db(|db| Ok(db.sounds().set_volume(id, volume)?))
@@ -92,7 +92,7 @@ pub fn set_sound_weight(state: State<'_, AppState>, id: i64, weight: f32) -> Res
     if !weight.is_finite() || weight < 0.0 || weight > 100.0 {
         return Err(CommandError::new(
             "invalidInput",
-            "Sound weight must be between 0 and 100.",
+            "Вага звуку має бути від 0 до 100.",
         ));
     }
     state.with_db(|db| Ok(db.sounds().set_weight(id, weight)?))
@@ -163,7 +163,7 @@ pub fn list_sound_groups(state: State<'_, AppState>) -> Res<Vec<SoundGroup>> {
 pub fn create_sound_group(state: State<'_, AppState>, name: String) -> Res<SoundGroup> {
     let name = name.trim().to_string();
     if name.is_empty() {
-        return Err(CommandError::new("invalidInput", "A group needs a name."));
+        return Err(CommandError::new("invalidInput", "Групі потрібна назва."));
     }
     state.with_db(|db| Ok(db.sounds().create_group(&name)?))
 }
@@ -179,7 +179,7 @@ pub fn update_sound_group(
 ) -> Res<SoundGroup> {
     let name = name.trim().to_string();
     if name.is_empty() {
-        return Err(CommandError::new("invalidInput", "A group needs a name."));
+        return Err(CommandError::new("invalidInput", "Групі потрібна назва."));
     }
     if !matches!(
         selection_mode.as_str(),
@@ -187,13 +187,13 @@ pub fn update_sound_group(
     ) {
         return Err(CommandError::new(
             "invalidInput",
-            format!("Unknown selection mode '{selection_mode}'."),
+            format!("Невідомий режим вибору «{selection_mode}»."),
         ));
     }
     if !(0.0..=1.0).contains(&volume) || !volume.is_finite() {
         return Err(CommandError::new(
             "invalidInput",
-            "Group volume must be between 0 and 1.",
+            "Гучність групи має бути від 0 до 1.",
         ));
     }
 

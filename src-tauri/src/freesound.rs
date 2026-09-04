@@ -34,10 +34,7 @@ pub fn stored_key(db: &Db) -> Result<Option<String>, CommandError> {
 
 pub fn client(db: &Db) -> Result<Client, CommandError> {
     let key = stored_key(db)?.ok_or_else(|| {
-        CommandError::new(
-            "freesoundKeyMissing",
-            "No Freesound API key is configured. Add one in Settings.",
-        )
+        CommandError::new("freesoundKeyMissing", "Ключ Freesound не налаштовано.")
     })?;
     Ok(Client::new(key))
 }

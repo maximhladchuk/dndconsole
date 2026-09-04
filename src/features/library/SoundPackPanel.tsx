@@ -27,13 +27,13 @@ export function SoundPackPanel() {
 
   return (
     <Panel
-      title="Sound pack"
+      title="Набір звуків"
       subtitle={
         status === null
-          ? 'Checking…'
+          ? 'Перевіряю…'
           : status.installed
-            ? `${status.total} sounds ready · everything works offline from here`
-            : `${status.present} of ${status.total} sounds · about ${status.megabytes.toFixed(1)} MB to download`
+            ? `${status.total} звуків готово · далі все працює без інтернету`
+            : `${status.present} з ${status.total} звуків · завантажити близько ${status.megabytes.toFixed(1)} МБ`
       }
     >
       {store.error ? (
@@ -58,31 +58,31 @@ export function SoundPackPanel() {
           <p className="empty">
             {store.progress
               ? `${store.progress.done} / ${store.progress.total} — ${store.progress.current}`
-              : 'Starting…'}
+              : 'Починаю…'}
           </p>
         </>
       ) : (
         <div className="library__actions">
           <button type="button" onClick={() => void store.install()}>
-            {status?.installed ? 'Check and repair' : 'Download sounds'}
+            {status?.installed ? 'Перевірити й полагодити' : 'Завантажити звуки'}
           </button>
         </div>
       )}
 
       {store.report ? (
         <p className="empty">
-          {store.report.downloaded} downloaded, {store.report.reused} already cached,{' '}
-          {store.report.groups.length} groups ready
-          {store.report.pruned > 0 ? `, ${store.report.pruned} outdated removed` : ''}.
+          Завантажено {store.report.downloaded}, уже було {store.report.reused}, груп готово{' '}
+          {store.report.groups.length}
+          {store.report.pruned > 0 ? `, застарілих видалено ${store.report.pruned}` : ''}.
           {store.report.failed.length > 0
-            ? ` ${store.report.failed.length} failed: ${store.report.failed.join('; ')}`
+            ? ` Не вдалося ${store.report.failed.length}: ${store.report.failed.join('; ')}`
             : ''}
         </p>
       ) : null}
 
       <p className="empty">
-        Every sound is public domain (CC0), fetched from Freesound once and kept on this
-        machine. Nothing is downloaded during a game.
+        Усі звуки — суспільне надбання (CC0), завантажуються з Freesound один раз і лежать
+        на цьому комп’ютері. Під час гри нічого не качається.
       </p>
     </Panel>
   );

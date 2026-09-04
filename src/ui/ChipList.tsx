@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { Hint } from './Hint';
+
 /**
  * A list of short strings edited as removable chips.
  *
@@ -14,6 +16,8 @@ import { useState } from 'react';
 interface ChipListProps {
   label: string;
   hint?: string;
+  /** Longer explanation, behind a "?" next to the label. */
+  explain?: React.ReactNode;
   items: string[];
   onChange: (items: string[]) => void;
   placeholder?: string;
@@ -21,7 +25,15 @@ interface ChipListProps {
   badge?: (item: string, index: number) => string | null;
 }
 
-export function ChipList({ label, hint, items, onChange, placeholder, badge }: ChipListProps) {
+export function ChipList({
+  label,
+  hint,
+  explain,
+  items,
+  onChange,
+  placeholder,
+  badge,
+}: ChipListProps) {
   const [draft, setDraft] = useState('');
 
   const add = () => {
@@ -37,7 +49,10 @@ export function ChipList({ label, hint, items, onChange, placeholder, badge }: C
   return (
     <div className="field">
       <span className="field__label">
-        {label}
+        <span className="field__label-text">
+          {label}
+          {explain ? <Hint label={label}>{explain}</Hint> : null}
+        </span>
         <span className="field__value">{items.length}</span>
       </span>
 
@@ -52,15 +67,15 @@ export function ChipList({ label, hint, items, onChange, placeholder, badge }: C
                 type="button"
                 className="chip__remove"
                 onClick={() => remove(index)}
-                aria-label={`Remove ${item}`}
-                title={`Remove ${item}`}
+                aria-label={`Прибрати ${item}`}
+                title={`Прибрати ${item}`}
               >
                 ×
               </button>
             </li>
           );
         })}
-        {items.length === 0 ? <li className="chips__empty">Nothing yet.</li> : null}
+        {items.length === 0 ? <li className="chips__empty">Поки порожньо.</li> : null}
       </ul>
 
       <div className="chips__add">
@@ -68,7 +83,7 @@ export function ChipList({ label, hint, items, onChange, placeholder, badge }: C
           type="text"
           value={draft}
           placeholder={placeholder}
-          aria-label={`Add to ${label}`}
+          aria-label={`Додати до «${label}»`}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -79,7 +94,7 @@ export function ChipList({ label, hint, items, onChange, placeholder, badge }: C
           }}
         />
         <button type="button" onClick={add} disabled={!draft.trim()}>
-          Add
+          Додати
         </button>
       </div>
 

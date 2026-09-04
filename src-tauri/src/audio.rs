@@ -71,7 +71,7 @@ impl AudioState {
                 "audioUnavailable",
                 self.unavailable_reason
                     .clone()
-                    .unwrap_or_else(|| "No audio output device is available.".to_string()),
+                    .unwrap_or_else(|| "Немає доступного пристрою відтворення звуку.".to_string()),
             )),
         }
     }

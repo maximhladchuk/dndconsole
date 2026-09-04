@@ -33,7 +33,7 @@ pub fn set_freesound_key(state: State<'_, AppState>, key: String) -> Res<Freesou
     if !trimmed.is_empty() && !trimmed.chars().all(|c| c.is_ascii_alphanumeric()) {
         return Err(CommandError::new(
             "invalidInput",
-            "A Freesound API key is letters and digits only. Check for a stray space.",
+            "Ключ Freesound складається лише з літер і цифр. Перевір, чи не лишився зайвий пробіл.",
         ));
     }
 
@@ -50,10 +50,7 @@ pub fn set_freesound_key(state: State<'_, AppState>, key: String) -> Res<Freesou
 #[tauri::command]
 pub fn freesound_search(state: State<'_, AppState>, query: SearchQuery) -> Res<SearchPage> {
     if query.text.trim().is_empty() {
-        return Err(CommandError::new(
-            "invalidInput",
-            "Type something to search for.",
-        ));
+        return Err(CommandError::new("invalidInput", "Напиши, що шукати."));
     }
 
     let client = state.with_db(freesound::client)?;

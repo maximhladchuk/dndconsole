@@ -16,7 +16,7 @@ export function ErrorBanner({ kind, message, tone = 'error', onDismiss }: ErrorB
         <strong>{kind}</strong>
         <p>{message}</p>
       </div>
-      <button type="button" onClick={onDismiss} aria-label="Dismiss">
+      <button type="button" onClick={onDismiss} aria-label="Закрити">
         ×
       </button>
     </div>

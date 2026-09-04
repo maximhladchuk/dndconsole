@@ -21,7 +21,7 @@ export function LevelMeter({ level, active, floorDb = -60 }: LevelMeterProps) {
   const width = active ? bar(level, floorDb) : 0;
 
   return (
-    <div className="meter" role="meter" aria-valuenow={Math.round(width * 100)} aria-label="Input level">
+    <div className="meter" role="meter" aria-valuenow={Math.round(width * 100)} aria-label="Рівень входу">
       <div className="meter__fill" style={{ width: `${width * 100}%` }} />
     </div>
   );

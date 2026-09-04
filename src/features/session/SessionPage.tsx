@@ -33,16 +33,16 @@ export function SessionPage() {
     <div className="app__grid">
       <div className="app__column">
         <Panel
-          title="Listening"
+          title="Прослуховування"
           subtitle={
             running
-              ? `${session.snapshot?.deviceName ?? 'microphone'} · ${session.snapshot?.eventCount ?? 0} events armed`
-              : 'Speech recognition runs entirely on this machine'
+              ? `${session.snapshot?.deviceName ?? 'мікрофон'} · ${session.snapshot?.eventCount ?? 0} подій напоготові`
+              : 'Розпізнавання мови працює лише на цьому комп’ютері'
           }
         >
           <div className="session__state">
             <span className={running ? 'dot is-live' : 'dot'} aria-hidden="true" />
-            <strong>{running ? (session.speaking ? 'Speaking' : 'Listening') : 'Stopped'}</strong>
+            <strong>{running ? (session.speaking ? 'Мова' : 'Слухаю') : 'Зупинено'}</strong>
           </div>
 
           <LevelMeter level={session.snapshot?.level ?? 0} active={running} />
@@ -50,15 +50,15 @@ export function SessionPage() {
           <div className="library__actions">
             {running ? (
               <button type="button" onClick={() => void session.stop()}>
-                Stop session
+                Зупинити сесію
               </button>
             ) : (
               <button type="button" onClick={() => void session.start()}>
-                Start session
+                Почати сесію
               </button>
             )}
             <button type="button" onClick={() => session.clearHistory()}>
-              Clear history
+              Очистити журнал
             </button>
           </div>
 
@@ -68,14 +68,14 @@ export function SessionPage() {
             </p>
           ) : (
             <p className="empty">
-              Start a session and narrate. Transcripts and triggered events appear here.
+              Почни сесію і розповідай. Тут з’являться розпізнаний текст і спрацьовані події.
             </p>
           )}
         </Panel>
 
-        <Panel title="Live transcript" subtitle="Most recent first, bounded history">
+        <Panel title="Розпізнаний текст" subtitle="Найновіше згори, журнал обмежений">
           {session.transcripts.length === 0 ? (
-            <p className="empty">Nothing yet.</p>
+            <p className="empty">Поки порожньо.</p>
           ) : (
             <ul className="log">
               {session.transcripts.map((line) => (
@@ -83,7 +83,7 @@ export function SessionPage() {
                   <span className="log__time">{clock(line.atMs)}</span>
                   <span className="log__text">{line.text}</span>
                   <span className="log__meta">
-                    {line.language ?? ''} {line.sttMs}ms
+                    {line.language ?? ''} {line.sttMs} мс
                   </span>
                 </li>
               ))}
@@ -93,9 +93,9 @@ export function SessionPage() {
       </div>
 
       <div className="app__column">
-        <Panel title="Triggered" subtitle="What actually played, and how fast">
+        <Panel title="Спрацювало" subtitle="Що саме зіграло і як швидко">
           {session.activity.length === 0 ? (
-            <p className="empty">No events have fired yet.</p>
+            <p className="empty">Жодна подія ще не спрацювала.</p>
           ) : (
             <ul className="log">
               {session.activity.map((line) => (
@@ -103,10 +103,12 @@ export function SessionPage() {
                   <span className="log__time">{clock(line.atMs)}</span>
                   <span className="log__text">
                     <strong>{line.eventId}</strong>
-                    {line.soundName ? ` → ${line.soundName}` : ` — ${line.note ?? 'no sound'}`}
+                    {line.soundName ? ` → ${line.soundName}` : ` — ${line.note ?? 'без звуку'}`}
                   </span>
                   <span className="log__meta">
-                    {line.soundName ? `${Math.round(line.confidence * 100)}% · ${line.latencyMs}ms` : ''}
+                    {line.soundName
+                      ? `${Math.round(line.confidence * 100)}% · ${line.latencyMs} мс`
+                      : ''}
                   </span>
                 </li>
               ))}

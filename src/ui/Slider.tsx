@@ -1,5 +1,9 @@
+import { Hint } from './Hint';
+
 interface SliderProps {
   label: string;
+  /** Longer explanation, behind a "?" next to the label. */
+  explain?: React.ReactNode;
   value: number;
   min?: number;
   max?: number;
@@ -10,6 +14,7 @@ interface SliderProps {
 
 export function Slider({
   label,
+  explain,
   value,
   min = 0,
   max = 1,
@@ -20,7 +25,10 @@ export function Slider({
   return (
     <label className="field field--slider">
       <span className="field__label">
-        {label}
+        <span className="field__label-text">
+          {label}
+          {explain ? <Hint label={label}>{explain}</Hint> : null}
+        </span>
         <span className="field__value">{format(value)}</span>
       </span>
       <input

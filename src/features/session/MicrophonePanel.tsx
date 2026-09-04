@@ -8,9 +8,8 @@ import { LevelMeter } from '../../ui/LevelMeter';
 /**
  * Microphone selection and the live input level.
  *
- * "Listening" here means audio is being captured and resampled to 16 kHz. Speech
- * recognition arrives in Phase 5; until then this proves the capture path end to end,
- * which is exactly what the meter is for.
+ * "Listening" here means audio is being captured and resampled to 16 kHz, without the
+ * recognition pipeline attached — it is how the capture path is proved on its own.
  */
 export function MicrophonePanel() {
   const devices = useCaptureStore((s) => s.devices);
@@ -31,28 +30,28 @@ export function MicrophonePanel() {
 
   return (
     <Panel
-      title="Microphone"
-      subtitle={listening ? 'Listening — audio stays on this machine' : 'Not listening'}
+      title="Мікрофон"
+      subtitle={listening ? 'Слухаю — звук не залишає цей комп’ютер' : 'Не слухаю'}
     >
       <label className="field">
-        <span className="field__label">Input device</span>
+        <span className="field__label">Пристрій входу</span>
         <select
           value={selected}
           disabled={listening}
           onChange={(e) => void updateSettings({ input_device: e.target.value || null })}
         >
-          <option value="">System default</option>
+          <option value="">Системний типовий</option>
           {devices.map((device) => (
             <option key={device.name} value={device.name}>
               {device.name}
-              {device.isDefault ? ' (default)' : ''}
+              {device.isDefault ? ' (типовий)' : ''}
             </option>
           ))}
         </select>
         <span className="field__hint">
           {listening
-            ? 'Stop listening to change device.'
-            : `${devices.length} input${devices.length === 1 ? '' : 's'} found.`}
+            ? 'Щоб змінити пристрій, зупини прослуховування.'
+            : `Знайдено пристроїв: ${devices.length}.`}
         </span>
       </label>
 
@@ -61,24 +60,24 @@ export function MicrophonePanel() {
       <div className="library__actions">
         {listening ? (
           <button type="button" onClick={() => void stop()}>
-            Stop listening
+            Зупинити
           </button>
         ) : (
           <button type="button" onClick={() => void start()}>
-            Start listening
+            Слухати
           </button>
         )}
         <button type="button" onClick={() => void loadDevices()} disabled={listening}>
-          Refresh devices
+          Оновити список
         </button>
       </div>
 
       {snapshot?.deviceName ? (
         <p className="field__hint">
           {snapshot.deviceName}
-          {snapshot.inputSampleRate ? ` · ${snapshot.inputSampleRate} Hz` : ''}
-          {snapshot.inputChannels ? ` · ${snapshot.inputChannels} ch` : ''}
-          {' → 16 kHz mono'}
+          {snapshot.inputSampleRate ? ` · ${snapshot.inputSampleRate} Гц` : ''}
+          {snapshot.inputChannels ? ` · ${snapshot.inputChannels} кан.` : ''}
+          {' → 16 кГц моно'}
         </p>
       ) : null}
     </Panel>

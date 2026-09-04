@@ -87,7 +87,7 @@ pub fn download_model(app: AppHandle, state: State<'_, AppState>, id: String) ->
     let spec = dndsound_models::CATALOG
         .iter()
         .find(|spec| spec.id == id)
-        .ok_or_else(|| CommandError::new("unknownModel", format!("Unknown model '{id}'.")))?;
+        .ok_or_else(|| CommandError::new("unknownModel", format!("Невідома модель «{id}».")))?;
 
     Ok(describe(&state, spec))
 }
@@ -104,7 +104,7 @@ pub fn delete_model(state: State<'_, AppState>, id: String) -> Res<Vec<ModelInfo
     if state.session().is_running() {
         return Err(CommandError::new(
             "sessionRunning",
-            "Stop the listening session before deleting a model.",
+            "Зупини сесію прослуховування, перш ніж видаляти модель.",
         ));
     }
 

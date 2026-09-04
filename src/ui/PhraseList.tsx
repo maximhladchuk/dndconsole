@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { Hint } from './Hint';
+
 import type { Phrase, PhraseLang } from '../types/api';
 
 /**
@@ -12,6 +14,8 @@ import type { Phrase, PhraseLang } from '../types/api';
 interface PhraseListProps {
   label: string;
   hint?: string;
+  /** Longer explanation, behind a "?" next to the label. */
+  explain?: React.ReactNode;
   phrases: Phrase[];
   onChange: (phrases: Phrase[]) => void;
   placeholder?: string;
@@ -23,7 +27,14 @@ const LANGS: { value: PhraseLang; label: string }[] = [
   { value: 'any', label: 'any' },
 ];
 
-export function PhraseList({ label, hint, phrases, onChange, placeholder }: PhraseListProps) {
+export function PhraseList({
+  label,
+  hint,
+  explain,
+  phrases,
+  onChange,
+  placeholder,
+}: PhraseListProps) {
   const [draft, setDraft] = useState('');
   const [lang, setLang] = useState<PhraseLang>('uk');
 
@@ -41,7 +52,10 @@ export function PhraseList({ label, hint, phrases, onChange, placeholder }: Phra
   return (
     <div className="field">
       <span className="field__label">
-        {label}
+        <span className="field__label-text">
+          {label}
+          {explain ? <Hint label={label}>{explain}</Hint> : null}
+        </span>
         <span className="field__value">{phrases.length}</span>
       </span>
 
@@ -54,20 +68,20 @@ export function PhraseList({ label, hint, phrases, onChange, placeholder }: Phra
               type="button"
               className="chip__remove"
               onClick={() => remove(index)}
-              aria-label={`Remove ${phrase.text}`}
-              title={`Remove ${phrase.text}`}
+              aria-label={`Прибрати ${phrase.text}`}
+              title={`Прибрати ${phrase.text}`}
             >
               ×
             </button>
           </li>
         ))}
-        {phrases.length === 0 ? <li className="chips__empty">Nothing yet.</li> : null}
+        {phrases.length === 0 ? <li className="chips__empty">Поки порожньо.</li> : null}
       </ul>
 
       <div className="chips__add">
         <select
           value={lang}
-          aria-label="Language of the new phrase"
+          aria-label="Мова нової фрази"
           onChange={(e) => setLang(e.target.value as PhraseLang)}
         >
           {LANGS.map((l) => (
@@ -80,7 +94,7 @@ export function PhraseList({ label, hint, phrases, onChange, placeholder }: Phra
           type="text"
           value={draft}
           placeholder={placeholder}
-          aria-label={`Add to ${label}`}
+          aria-label={`Додати до «${label}»`}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -90,7 +104,7 @@ export function PhraseList({ label, hint, phrases, onChange, placeholder }: Phra
           }}
         />
         <button type="button" onClick={add} disabled={!draft.trim()}>
-          Add
+          Додати
         </button>
       </div>
 

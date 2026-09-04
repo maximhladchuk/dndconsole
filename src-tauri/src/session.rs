@@ -143,7 +143,7 @@ impl SessionState {
         if guard.is_some() {
             return Err(CommandError::new(
                 "sessionRunning",
-                "A listening session is already running.",
+                "Сесія прослуховування вже запущена.",
             ));
         }
 
@@ -535,9 +535,7 @@ fn session_error(err: dndsound_pipeline::Error) -> CommandError {
     };
 
     let message = match &err {
-        E::PermissionDenied => "macOS has not granted this app access to the microphone. \
-             Open System Settings › Privacy & Security › Microphone and enable dndsound."
-            .to_string(),
+        E::PermissionDenied => crate::error::microphone_permission_message().to_string(),
         other => other.to_string(),
     };
 

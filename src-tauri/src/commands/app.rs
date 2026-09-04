@@ -77,7 +77,7 @@ pub fn create_profile(
     if name.is_empty() {
         return Err(CommandError::new(
             "invalidInput",
-            "Profile name cannot be empty.",
+            "Назва кампанії не може бути порожньою.",
         ));
     }
     state.with_db(|db| Ok(db.profiles().create(&name, description.trim())?))
@@ -126,7 +126,7 @@ fn validate_settings(s: &AppSettings) -> Res<()> {
         return Err(CommandError::new(
             "invalidInput",
             format!(
-                "Unsupported language '{}'. Expected auto, uk or en.",
+                "Непідтримувана мова «{}». Очікується auto, uk або en.",
                 s.language
             ),
         ));
@@ -135,14 +135,14 @@ fn validate_settings(s: &AppSettings) -> Res<()> {
     if !(1_000..=60_000).contains(&s.vad_max_segment_ms) {
         return Err(CommandError::new(
             "invalidInput",
-            "The monologue cut must be between 1 and 60 seconds.",
+            "Різати монолог можна в межах від 1 до 60 секунд.",
         ));
     }
 
     if s.vad_min_speech_ms > s.vad_max_segment_ms {
         return Err(CommandError::new(
             "invalidInput",
-            "Minimum speech duration cannot exceed the maximum segment length.",
+            "Найкоротша мова не може бути довшою за максимальний відрізок.",
         ));
     }
 

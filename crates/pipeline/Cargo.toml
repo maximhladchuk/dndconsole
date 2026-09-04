@@ -15,13 +15,22 @@ rubato = "5"
 audioadapter-buffers = "5"
 hound.workspace = true
 rtrb = "0.4"
-# Metal keeps the encoder on the GPU. Core ML is deliberately not enabled: it would add
-# a 1.1 GB download for the encoder alone, and the Metal path is fast enough to measure
-# first. See docs/DECISIONS.md DR-001.
-whisper-rs = { version = "0.16", features = ["metal"] }
 serde.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+
+# whisper.cpp's GPU backend is chosen per platform, because the feature that makes it
+# fast on one is a build failure on another: `metal` does not exist off Apple platforms.
+# Windows and Linux fall back to the CPU backend, which works and is slower — Vulkan or
+# CUDA would be the next step and neither can be verified from this machine.
+#
+# Core ML is deliberately not enabled on macOS: it would add a 1.1 GB download for the
+# encoder alone, and the Metal path is fast enough. See docs/DECISIONS.md DR-001.
+[target.'cfg(target_os = "macos")'.dependencies]
+whisper-rs = { version = "0.16", features = ["metal"] }
+
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+whisper-rs = { version = "0.16" }
 
 [dev-dependencies]
 hound.workspace = true

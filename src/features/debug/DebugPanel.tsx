@@ -12,25 +12,25 @@ export function DebugPanel() {
 
   if (detections.length === 0) {
     return (
-      <Panel title="Debug" subtitle="Candidate scores and rejection reasons">
-        <p className="empty">Nothing detected yet.</p>
+      <Panel title="Діагностика" subtitle="Бали кандидатів і причини відмов">
+        <p className="empty">Поки нічого не розпізнано.</p>
       </Panel>
     );
   }
 
   return (
-    <Panel title="Debug" subtitle="Every candidate, accepted or not">
+    <Panel title="Діагностика" subtitle="Усі кандидати — прийняті й ні">
       <ul className="debug">
         {detections.map((record) => (
           <li key={record.id}>
             <p className="debug__transcript">
-              {record.detection.isFinal ? '' : '(partial) '}
+              {record.detection.isFinal ? '' : '(проміжний) '}
               “{record.detection.transcript}”
               <span className="log__meta"> {record.detectUs} µs</span>
             </p>
 
             {record.detection.candidates.length === 0 ? (
-              <p className="empty">no candidates</p>
+              <p className="empty">кандидатів немає</p>
             ) : (
               <ul className="candidates">
                 {record.detection.candidates.map((candidate) => (
@@ -51,7 +51,10 @@ export function DebugPanel() {
 
             {record.decision.suppressed.length > 0 ? (
               <p className="debug__suppressed">
-                suppressed: {record.decision.suppressed.map((s) => `${s.eventId} (${s.reason.reason})`).join(', ')}
+                придушено:{' '}
+                {record.decision.suppressed
+                  .map((s) => `${s.eventId} (${s.reason.reason})`)
+                  .join(', ')}
               </p>
             ) : null}
           </li>

@@ -39,8 +39,8 @@ pub fn start_session(app: AppHandle, state: State<'_, AppState>) -> Res<SessionS
     let vad_model_path = state.models().require(VAD_MODEL_ID).map_err(|_| {
         CommandError::new(
             "modelMissing",
-            "The voice activity model has not been downloaded yet. \
-             Download it in Settings before starting a session.",
+            "Модель виявлення голосу ще не завантажена. \
+             Завантаж її на вкладці «Налаштування», перш ніж починати сесію.",
         )
     })?;
 
@@ -51,7 +51,7 @@ pub fn start_session(app: AppHandle, state: State<'_, AppState>) -> Res<SessionS
             CommandError::new(
                 "modelMissing",
                 format!(
-                    "The speech model '{}' has not been downloaded yet.",
+                    "Модель розпізнавання «{}» ще не завантажена.",
                     settings.speech_model
                 ),
             )
@@ -131,7 +131,7 @@ pub fn simulate_transcript(
     if text.is_empty() {
         return Err(CommandError::new(
             "invalidInput",
-            "Type some narration to simulate.",
+            "Напиши текст оповіді для перевірки.",
         ));
     }
 
@@ -188,17 +188,14 @@ pub fn run_recorded_audio(state: State<'_, AppState>, path: String) -> Res<Recor
     if state.session().is_running() {
         return Err(CommandError::new(
             "sessionRunning",
-            "Stop the listening session before running a recording through the pipeline.",
+            "Зупини сесію прослуховування, перш ніж проганяти запис через конвеєр.",
         ));
     }
 
     let settings = state.with_db(|db| Ok::<_, CommandError>(db.settings().load()?))?;
 
     let vad_model = state.models().require(VAD_MODEL_ID).map_err(|_| {
-        CommandError::new(
-            "modelMissing",
-            "The voice activity model is not downloaded.",
-        )
+        CommandError::new("modelMissing", "Модель виявлення голосу не завантажена.")
     })?;
     let speech_model = state
         .models()
@@ -207,7 +204,7 @@ pub fn run_recorded_audio(state: State<'_, AppState>, path: String) -> Res<Recor
             CommandError::new(
                 "modelMissing",
                 format!(
-                    "The speech model '{}' is not downloaded.",
+                    "Модель розпізнавання «{}» не завантажена.",
                     settings.speech_model
                 ),
             )

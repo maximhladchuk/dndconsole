@@ -8,39 +8,38 @@ interface StatusPanelProps {
 
 /**
  * Shows what actually exists today: the app, its database, the active profile and the
- * state of the audio output. Listening controls arrive with the capture pipeline in
- * Phase 3 — a Start Listening button that does nothing would be worse than none.
+ * state of the audio output.
  */
 export function StatusPanel({ status }: StatusPanelProps) {
   return (
-    <Panel title="Application" subtitle="Phase 1 — desktop shell, storage and settings">
+    <Panel title="Програма" subtitle="Стан застосунку, бази даних і звукового виходу">
       <dl className="facts">
         <div>
-          <dt>Version</dt>
+          <dt>Версія</dt>
           <dd>{status?.version ?? '—'}</dd>
         </div>
         <div>
-          <dt>Schema version</dt>
+          <dt>Версія схеми</dt>
           <dd>{status?.schemaVersion ?? '—'}</dd>
         </div>
         <div>
-          <dt>Active profile</dt>
+          <dt>Активний профіль</dt>
           <dd>{status?.activeProfile?.name ?? '—'}</dd>
         </div>
         <div>
-          <dt>Audio output</dt>
+          <dt>Звуковий вихід</dt>
           <dd>
             {status?.audio.available
-              ? `ready · ${status.audio.activeOneShots} playing`
+              ? `готовий · ${status.audio.activeOneShots} грає`
               : (status?.audio.unavailableReason ?? '—')}
           </dd>
         </div>
         <div>
-          <dt>Decode cache</dt>
+          <dt>Кеш декодування</dt>
           <dd>{status ? formatBytes(status.audio.cacheUsedBytes) : '—'}</dd>
         </div>
         <div className="facts__wide">
-          <dt>Database</dt>
+          <dt>База даних</dt>
           <dd className="facts__path">{status?.databasePath ?? '—'}</dd>
         </div>
       </dl>

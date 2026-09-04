@@ -29,11 +29,11 @@ export function LibraryPage() {
       <div className="app__column">
         <SoundPackPanel />
 
-        <Panel title="Groups" subtitle="An event plays from a group, never from one file">
+        <Panel title="Групи" subtitle="Подія грає з групи, а не з одного файлу">
           {store.loading ? (
-            <p className="empty">Loading…</p>
+            <p className="empty">Завантаження…</p>
           ) : store.groups.length === 0 ? (
-            <p className="empty">Download the sound pack to fill these in.</p>
+            <p className="empty">Завантаж набір звуків, щоб тут щось з’явилося.</p>
           ) : (
             <ul className="picker">
               {store.groups.map((group) => (
@@ -59,17 +59,17 @@ export function LibraryPage() {
 
       <div className="app__column">
         <Panel
-          title={selected ? selected.name : 'Sounds'}
+          title={selected ? selected.name : 'Звуки'}
           subtitle={
             selected
-              ? `${members.length} sounds · one is picked at random, avoiding the last`
-              : 'Pick a group to hear what is in it'
+              ? `${members.length} звуків · один обирається випадково, минулий не повторюється`
+              : 'Обери групу, щоб послухати, що в ній'
           }
         >
           {selected === null ? (
-            <p className="empty">Nothing selected.</p>
+            <p className="empty">Нічого не обрано.</p>
           ) : members.length === 0 ? (
-            <p className="empty">This group is empty.</p>
+            <p className="empty">Ця група порожня.</p>
           ) : (
             <ul className="sound-list">
               {members.map((sound) => (
@@ -77,21 +77,21 @@ export function LibraryPage() {
                   <span className="sound-row__name">
                     {sound.displayName}
                     <span className="sound-row__meta">
-                      {sound.durationMs ? `${(sound.durationMs / 1000).toFixed(1)} s` : '—'} ·{' '}
-                      {sound.provenance.license || 'local'}
+                      {sound.durationMs ? `${(sound.durationMs / 1000).toFixed(1)} с` : '—'} ·{' '}
+                      {sound.provenance.license || 'локальний'}
                       {sound.provenance.author ? ` · ${sound.provenance.author}` : ''}
-                      {sound.missing ? ' · file missing' : ''}
+                      {sound.missing ? ' · файл відсутній' : ''}
                     </span>
                   </span>
                   <span className="sound-row__actions">
                     <button type="button" onClick={() => void store.preview(sound.id)}>
-                      Play
+                      Слухати
                     </button>
                     <button
                       type="button"
                       onClick={() => void store.setSoundEnabled(sound.id, !sound.enabled)}
                     >
-                      {sound.enabled ? 'Mute' : 'Unmute'}
+                      {sound.enabled ? 'Вимкнути' : 'Увімкнути'}
                     </button>
                   </span>
                 </li>
@@ -100,7 +100,7 @@ export function LibraryPage() {
           )}
 
           {store.lastPlayed ? (
-            <p className="library__now">Playing: {store.lastPlayed.displayName}</p>
+            <p className="library__now">Грає: {store.lastPlayed.displayName}</p>
           ) : null}
         </Panel>
       </div>

@@ -1,9 +1,22 @@
 import { useEffect, useState } from 'react';
 
 import { ChipList } from '../../ui/ChipList';
+import { Hint } from '../../ui/Hint';
 import { PhraseList } from '../../ui/PhraseList';
 import { Slider } from '../../ui/Slider';
 import { Toggle } from '../../ui/Toggle';
+import {
+  ACTIONS_HINT,
+  COMMANDS_HINT,
+  COOLDOWN_HINT,
+  HOW_MATCHING_WORKS,
+  KEYWORDS_HINT,
+  NEGATIVES_HINT,
+  PHRASES_HINT,
+  PROBABILITY_HINT,
+  REQUIRE_ACTION_HINT,
+  THRESHOLD_HINT,
+} from './hints';
 import type {
   EventDefinition,
   EventTerm,
@@ -96,17 +109,22 @@ export function EventEditor({
           type="text"
           value={draft.displayName}
           onChange={(e) => setDraft({ ...draft, displayName: e.target.value })}
-          aria-label="Event name"
+          aria-label="Назва події"
         />
         <button type="button" onClick={save} disabled={saving}>
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? 'Зберігаю…' : 'Зберегти'}
         </button>
         {event.builtin && event.userModified ? (
           <button type="button" onClick={onReset} disabled={saving}>
-            Reset to default
+            Повернути типове
           </button>
         ) : null}
-        <button type="button" className="icon icon--danger" onClick={onDelete} aria-label="Delete event">
+        <button
+          type="button"
+          className="icon icon--danger"
+          onClick={onDelete}
+          aria-label="Видалити подію"
+        >
           ×
         </button>
       </div>
@@ -114,18 +132,23 @@ export function EventEditor({
         <code className="field__mono">{draft.id}</code> · {draft.category || 'uncategorised'}
         {event.builtin
           ? event.userModified
-            ? ' · edited — built-in improvements no longer apply'
-            : ' · built-in, kept up to date automatically'
-          : ' · your own event'}
+            ? ' · змінено вручну — оновлення вбудованих фраз більше не застосовуються'
+            : ' · вбудована, оновлюється автоматично'
+          : ' · твоя власна подія'}
+      </p>
+
+      <p className="event-editor__how">
+        Як це працює
+        <Hint label="як працює розпізнавання">{HOW_MATCHING_WORKS}</Hint>
       </p>
 
       <label className="field">
-        <span className="field__label">Sound group</span>
+        <span className="field__label">Група звуків</span>
         <select
           value={groupId ?? ''}
           onChange={(e) => setGroupId(e.target.value ? Number(e.target.value) : null)}
         >
-          <option value="">— none —</option>
+          <option value="">— немає —</option>
           {groups.map((group) => (
             <option key={group.id} value={group.id}>
               {group.name}
@@ -133,52 +156,58 @@ export function EventEditor({
           ))}
         </select>
         <span className="field__hint">
-          {groupId === null ? 'This event will detect but play nothing.' : ''}
+          {groupId === null ? 'Подія розпізнаватиметься, але нічого не гратиме.' : ''}
         </span>
       </label>
 
-      <PhraseList
-        label="Example phrases"
-        phrases={examples}
-        onChange={setExamples}
-        placeholder="відчиняє двері"
-        hint="Whole sentences the way they get said. These are matched as phrases, so they fire even when no single keyword does."
-      />
-
       <ChipList
-        label="Keywords"
+        label="Ключові слова"
         items={keywords}
         onChange={setKeywords}
         placeholder="двері"
-        hint="The object: door, sword, wolf. Every case form of a word that changes its stem needs its own entry — двері, дверей, дверима."
+        explain={KEYWORDS_HINT}
+        hint="Об’єкт: двері, меч, вовк."
       />
 
       <ChipList
-        label="Action words"
+        label="Слова дії"
         items={actions}
         onChange={setActions}
         placeholder="відчиняє"
-        hint="What has to be happening. Without one of these, a bare keyword will not fire."
+        explain={ACTIONS_HINT}
+        hint="Що з об’єктом відбувається. Без цього саме ключове слово не спрацює."
+      />
+
+      <PhraseList
+        label="Приклади фраз"
+        phrases={examples}
+        onChange={setExamples}
+        placeholder="відчиняє двері"
+        explain={PHRASES_HINT}
+        hint="Цілі речення так, як ти їх кажеш."
       />
 
       <ChipList
-        label="Negative phrases"
+        label="Заперечення"
         items={negatives}
         onChange={setNegatives}
         placeholder="двері зачинені"
-        hint="If any of these appear, the event is suppressed."
+        explain={NEGATIVES_HINT}
+        hint="Якщо збіглося — подія не грає."
       />
 
       <ChipList
-        label="Spoken commands"
+        label="Голосові команди"
         items={commands}
         onChange={setCommands}
         placeholder="sound door"
-        hint="Said deliberately, and always wins over automatic detection."
+        explain={COMMANDS_HINT}
+        hint="Сказане навмисне; завжди виграє в автоматичного розпізнавання."
       />
 
       <Slider
-        label="Confidence threshold"
+        label="Поріг упевненості"
+        explain={THRESHOLD_HINT}
         value={draft.confidenceThreshold}
         min={0.3}
         max={0.99}
@@ -186,12 +215,14 @@ export function EventEditor({
         format={(v) => v.toFixed(2)}
       />
       <Slider
-        label="Probability"
+        label="Ймовірність"
+        explain={PROBABILITY_HINT}
         value={draft.probability}
         onChange={(v) => setDraft({ ...draft, probability: v })}
       />
       <Slider
-        label="Cooldown"
+        label="Затримка між спрацюваннями"
+        explain={COOLDOWN_HINT}
         value={draft.cooldownMs}
         min={0}
         max={30_000}
@@ -201,13 +232,14 @@ export function EventEditor({
       />
 
       <Toggle
-        label="Require an action word"
-        hint="Stops “a sword lies on the table” from triggering a sword swing."
+        label="Вимагати слово дії"
+        explain={REQUIRE_ACTION_HINT}
+        hint="Не дає «Меч лежить на столі» зіграти удар мечем."
         checked={draft.requireActionWord}
         onChange={(v) => setDraft({ ...draft, requireActionWord: v })}
       />
       <Toggle
-        label="Enabled"
+        label="Увімкнено"
         checked={draft.enabled}
         onChange={(v) => setDraft({ ...draft, enabled: v })}
       />

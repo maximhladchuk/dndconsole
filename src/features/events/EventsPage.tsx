@@ -17,15 +17,15 @@ export function EventsPage() {
 
   return (
     <div className="library">
-      <Panel title="Events" subtitle={`${store.events.length} defined`}>
+      <Panel title="Події" subtitle={`${store.events.length} усього`}>
         <div className="library__actions">
           <button type="button" onClick={() => void store.restoreDefaults()}>
-            Restore defaults
+            Повернути типові
           </button>
         </div>
 
         {store.loading ? (
-          <p className="empty">Loading…</p>
+          <p className="empty">Завантаження…</p>
         ) : (
           <ul className="sounds">
             {store.events.map(({ definition, soundGroupId }) => (
@@ -42,8 +42,8 @@ export function EventsPage() {
                 >
                   <span className={definition.enabled ? '' : 'is-dim'}>{definition.displayName}</span>
                   <span className="sounds__meta">
-                    {definition.category} · {definition.phrases.length} phrases ·{' '}
-                    {soundGroupId === null ? 'no sound' : 'sound assigned'}
+                    {definition.category} · {definition.phrases.length} фраз ·{' '}
+                    {soundGroupId === null ? 'без звуку' : 'звук призначено'}
                   </span>
                 </button>
 
@@ -51,7 +51,7 @@ export function EventsPage() {
                   type="button"
                   className={definition.enabled ? 'icon is-on' : 'icon'}
                   onClick={() => void store.setEnabled(definition.id, !definition.enabled)}
-                  aria-label={definition.enabled ? 'Disable event' : 'Enable event'}
+                  aria-label={definition.enabled ? 'Вимкнути подію' : 'Увімкнути подію'}
                 >
                   ◉
                 </button>
@@ -62,8 +62,10 @@ export function EventsPage() {
       </Panel>
 
       <Panel
-        title="Event"
-        subtitle={selected ? 'Changes apply immediately, even mid-session' : 'Select an event'}
+        title="Подія"
+        subtitle={
+          selected ? 'Зміни діють одразу, навіть під час сесії' : 'Обери подію зі списку'
+        }
       >
         {selected ? (
           <EventEditor
@@ -75,7 +77,7 @@ export function EventsPage() {
             onReset={() => void store.reset(selected.definition.id)}
           />
         ) : (
-          <p className="empty">No event selected.</p>
+          <p className="empty">Подію не обрано.</p>
         )}
       </Panel>
     </div>

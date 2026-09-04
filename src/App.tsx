@@ -17,11 +17,11 @@ import { ErrorBanner } from './ui/ErrorBanner';
 type Tab = 'session' | 'events' | 'library' | 'models' | 'settings';
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'session', label: 'Session' },
-  { id: 'events', label: 'Events' },
-  { id: 'library', label: 'Sounds' },
-  { id: 'models', label: 'Setup' },
-  { id: 'settings', label: 'Settings' },
+  { id: 'session', label: 'Сесія' },
+  { id: 'events', label: 'Події' },
+  { id: 'library', label: 'Звуки' },
+  { id: 'models', label: 'Налаштування' },
+  { id: 'settings', label: 'Параметри' },
 ];
 
 export default function App() {
@@ -54,7 +54,7 @@ export default function App() {
       <header className="app__header">
         <div>
           <h1>dndsound</h1>
-          <p>Voice-triggered sound engine — runs entirely on this machine.</p>
+          <p>Звуки за голосом — усе працює на цьому комп’ютері.</p>
         </div>
         <nav className="tabs">
           {TABS.map((t) => (
@@ -104,7 +104,7 @@ export default function App() {
       ) : null}
 
       {loading ? (
-        <p className="app__loading">Loading…</p>
+        <p className="app__loading">Завантаження…</p>
       ) : (
         <main>
           {tab === 'session' ? <SessionPage /> : null}

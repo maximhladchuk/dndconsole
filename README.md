@@ -45,7 +45,7 @@ Tauri 2 · React 19 · TypeScript · Rust · SQLite ·
 [multilingual-e5-small](https://huggingface.co/intfloat/multilingual-e5-small) ·
 [kira](https://docs.rs/kira)
 
-Languages: Ukrainian and English, including mixed speech.
+Languages: Ukrainian and English, including mixed speech. The interface is in Ukrainian.
 
 ## Status
 
@@ -130,4 +130,14 @@ the application, because the seed only ever ran on an empty database.
 
 ## Installing
 
-See **[INSTALL.md](INSTALL.md)** — tools, build, and the first-launch checklist.
+See **[INSTALL.md](INSTALL.md)** (Ukrainian) — system requirements, macOS and Windows
+builds, and the first-launch checklist.
+
+Verified on macOS (Apple Silicon). Windows is **not verified**: the dependency graph
+resolves for `x86_64-pc-windows-msvc`, the pure-Rust crates cross-compile, and the one
+blocker that existed — whisper.cpp's `metal` feature, which does not exist off Apple
+platforms — is now selected per target. Nobody has built or run it on Windows.
+
+Without Metal, whisper runs on the CPU: measured on the same machine with the backend
+switched off, a sentence decodes in 2.3 s instead of 0.9 s, and triggering *mid*-sentence
+stops keeping up. Numbers in [PERFORMANCE.md](docs/PERFORMANCE.md).
