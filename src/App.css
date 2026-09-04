@@ -339,7 +339,9 @@ body {
 /* ---------------------------------------------------------------- library -- */
 .library {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  /* The right column holds the editor — five term lists rendered as chips — and the
+     left holds names. Splitting them evenly wasted the half that needs the room. */
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
   gap: 16px;
   align-items: start;
 }
@@ -748,9 +750,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 640px;
-  overflow-y: auto;
-  padding-right: 4px;
+  min-width: 0;
 }
 
 .event-editor textarea,
@@ -991,8 +991,6 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-height: 220px;
-  overflow-y: auto;
 }
 
 .chip {
@@ -1090,12 +1088,14 @@ body {
   color: var(--accent);
 }
 
+/* Rendered into <body>, positioned by script. An absolutely positioned popover inside
+   the panel still counted toward that panel's scroll width and gave it a horizontal
+   scrollbar. */
 .hint__popover {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 8px);
-  left: -8px;
-  width: min(420px, 78vw);
+  position: fixed;
+  z-index: 100;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
   padding: 12px 14px;
   background: var(--panel);
   border: 1px solid var(--panel-border);
@@ -1108,12 +1108,6 @@ body {
   text-align: left;
   white-space: normal;
   cursor: default;
-}
-
-/* Near the right edge the popover would run off the panel. */
-.hint--end .hint__popover {
-  left: auto;
-  right: -8px;
 }
 
 .hint__popover p {

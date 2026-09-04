@@ -12,7 +12,7 @@ CREATE TABLE profiles (
 );
 
 -- ------------------------------------------------------------------ sounds --
--- `managed` distinguishes the two library modes from the spec: 0 = the file is
+-- `managed` distinguishes the two library modes: 0 = the file is
 -- referenced where the user keeps it, 1 = the app copied it into its own directory.
 CREATE TABLE sounds (
     id           INTEGER PRIMARY KEY,
@@ -65,7 +65,7 @@ CREATE TABLE sound_group_members (
 CREATE INDEX idx_group_members_sound ON sound_group_members(sound_id);
 
 -- ------------------------------------------------------------------ events --
--- `id` is the semantic identifier from the spec, e.g. 'OPEN_DOOR'.
+-- `id` is the semantic identifier, e.g. 'OPEN_DOOR'.
 -- `kind` separates one-shots from persistent ambience state transitions.
 CREATE TABLE events (
     id                   TEXT    PRIMARY KEY,

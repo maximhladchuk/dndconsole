@@ -1,9 +1,9 @@
 //! The corpus that guards detection quality.
 //!
 //! Realistic Dungeon Master narration in both languages, each line labelled with the
-//! event it should fire — or with nothing, which is the more important half. The spec's
-//! priority order is explicit: a missed sound costs far less than a wrong one, so
-//! **precision is reported separately from recall and is not allowed to regress**.
+//! event it should fire — or with nothing, which is the more important half. A missed
+//! sound costs far less than a wrong one, so **precision is reported separately from
+//! recall and is not allowed to regress**.
 //!
 //! Runs in milliseconds with no microphone, no models and no audio hardware, which is
 //! the entire reason `dndsound-detect` is a pure crate.

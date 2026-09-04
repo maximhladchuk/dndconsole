@@ -4,7 +4,7 @@
 # These are synthetic voices, not real narration. They are deterministic and free,
 # which makes them good for regression-testing the pipeline's plumbing: voice activity
 # detection, transcription, and the path from speech to a played sound. Tuning
-# *detection quality* still needs real Dungeon Master recordings — see docs/ROADMAP.md.
+# *detection quality* still needs real Dungeon Master recordings.
 #
 # Output: 16 kHz mono 16-bit WAV, the format the pipeline works in.
 set -euo pipefail

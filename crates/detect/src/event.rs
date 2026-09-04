@@ -235,7 +235,7 @@ mod tests {
     fn a_new_event_is_strict_by_default() {
         let event = EventDefinition::new("OPEN_DOOR", "Open Door");
 
-        // The spec's priority order: a missed sound beats a wrong one.
+        // A missed sound beats a wrong one.
         assert!(event.confidence_threshold >= 0.8);
         assert!(event.require_action_word);
         assert!(event.enabled);

@@ -13,7 +13,8 @@
 //! * **Final** — when the segment closes, it is transcribed once with the accurate
 //!   model. This is the transcript that goes in the log.
 //!
-//! Measurements behind the two-model split are in `docs/PERFORMANCE.md`.
+//! The split exists because it was measured: the accurate model needs ~840 ms for a
+//! three-second utterance and the fast one ~190 ms, against a 400 ms partial interval.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{Receiver, Sender};

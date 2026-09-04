@@ -1,7 +1,7 @@
 //! Cached phrase embeddings.
 //!
 //! Embedding one phrase takes about three milliseconds. Five events is nothing; the
-//! spec's target of 5,000 events with ten phrases each is 50,000 embeddings, which is
+//! design target of 5,000 events with ten phrases each is 50,000 embeddings, which is
 //! two and a half minutes of startup. So they are computed once and kept, keyed by the
 //! phrase text and the model that produced them — change either and the entry is simply
 //! missed and recomputed.

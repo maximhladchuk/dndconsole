@@ -15,7 +15,7 @@ import { toError } from './errors';
  * Bounded history sizes.
  *
  * A four-hour session produces thousands of transcripts. Keeping them all would grow
- * memory for the whole evening, which the spec explicitly forbids.
+ * memory for the whole evening.
  */
 const MAX_TRANSCRIPTS = 200;
 const MAX_ACTIVITY = 200;

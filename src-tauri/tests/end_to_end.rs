@@ -5,7 +5,7 @@
 //! the real audio engine playing a real file. The microphone is replaced by a WAV of
 //! spoken narration, which is exactly what the recorded-audio test mode does.
 //!
-//! This is the automated form of the spec's acceptance checklist. It also runs with the
+//! This is the automated form of the acceptance checklist. It also runs with the
 //! network off once the models are cached, which is the product's defining requirement.
 
 use std::path::{Path, PathBuf};

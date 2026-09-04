@@ -1,6 +1,6 @@
 //! Prints the real input/output signature of the Silero VAD ONNX graph.
 //!
-//! `docs/MODEL_SELECTION.md` promises this is verified rather than assumed. Run with:
+//! The model's input and output shapes are verified here rather than assumed. Run with:
 //!
 //! ```text
 //! cargo run -p dndsound-pipeline --example inspect_vad

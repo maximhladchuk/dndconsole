@@ -1,5 +1,5 @@
-//! The live audio pipeline: microphone capture, resampling, and (from Phase 4)
-//! voice activity detection and speech recognition.
+//! The live audio pipeline: microphone capture, resampling, voice activity detection
+//! and speech recognition.
 //!
 //! Everything here runs off the UI thread. The realtime audio callback does the
 //! absolute minimum — convert and hand off — and all real work happens on worker

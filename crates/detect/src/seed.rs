@@ -81,7 +81,7 @@ fn phrases(examples_en: &[&str], examples_uk: &[&str], commands: &[&str]) -> Vec
 fn open_door() -> EventDefinition {
     EventDefinition {
         category: "environment".to_string(),
-        ..EventDefinition::new("OPEN_DOOR", "Open Door")
+        ..EventDefinition::new("OPEN_DOOR", "Двері відчиняються")
     }
     .with_phrases(phrases(
         &[
@@ -205,7 +205,7 @@ fn open_door() -> EventDefinition {
 fn door_slam() -> EventDefinition {
     EventDefinition {
         category: "environment".to_string(),
-        ..EventDefinition::new("DOOR_SLAM", "Door Slam")
+        ..EventDefinition::new("DOOR_SLAM", "Двері грюкають")
     }
     .with_phrases(phrases(
         &[
@@ -294,7 +294,7 @@ fn door_slam() -> EventDefinition {
 fn chest_open() -> EventDefinition {
     EventDefinition {
         category: "environment".to_string(),
-        ..EventDefinition::new("CHEST_OPEN", "Chest Open")
+        ..EventDefinition::new("CHEST_OPEN", "Скриня")
     }
     .with_phrases(phrases(
         &[
@@ -394,7 +394,7 @@ fn chest_open() -> EventDefinition {
 fn sword_swing() -> EventDefinition {
     EventDefinition {
         category: "combat".to_string(),
-        ..EventDefinition::new("SWORD_SWING", "Sword Swing")
+        ..EventDefinition::new("SWORD_SWING", "Удар мечем")
     }
     .with_phrases(phrases(
         &[
@@ -551,7 +551,7 @@ fn sword_swing() -> EventDefinition {
 fn bow_shot() -> EventDefinition {
     EventDefinition {
         category: "combat".to_string(),
-        ..EventDefinition::new("BOW_SHOT", "Bow Shot")
+        ..EventDefinition::new("BOW_SHOT", "Постріл з лука")
     }
     .with_phrases(phrases(
         &[
@@ -673,7 +673,7 @@ fn bow_shot() -> EventDefinition {
 fn thunder() -> EventDefinition {
     EventDefinition {
         category: "weather".to_string(),
-        ..EventDefinition::new("THUNDER", "Thunder")
+        ..EventDefinition::new("THUNDER", "Грім і блискавка")
     }
     .with_phrases(phrases(
         &[
@@ -774,7 +774,7 @@ fn thunder() -> EventDefinition {
 fn fire() -> EventDefinition {
     EventDefinition {
         category: "environment".to_string(),
-        ..EventDefinition::new("FIRE", "Fire")
+        ..EventDefinition::new("FIRE", "Вогонь")
     }
     .with_phrases(phrases(
         &[
@@ -887,7 +887,7 @@ fn fire() -> EventDefinition {
 fn water_splash() -> EventDefinition {
     EventDefinition {
         category: "environment".to_string(),
-        ..EventDefinition::new("WATER_SPLASH", "Water Splash")
+        ..EventDefinition::new("WATER_SPLASH", "Вода")
     }
     .with_phrases(phrases(
         &[
@@ -998,7 +998,7 @@ fn water_splash() -> EventDefinition {
 fn wolf_growl() -> EventDefinition {
     EventDefinition {
         category: "creatures".to_string(),
-        ..EventDefinition::new("WOLF_GROWL", "Wolf Growl")
+        ..EventDefinition::new("WOLF_GROWL", "Вовки")
     }
     .with_phrases(phrases(
         &[
@@ -1100,7 +1100,7 @@ fn wolf_growl() -> EventDefinition {
 fn small_creature_scurry() -> EventDefinition {
     EventDefinition {
         category: "creatures".to_string(),
-        ..EventDefinition::new("SMALL_CREATURE_SCURRY", "Small Creature Scurry")
+        ..EventDefinition::new("SMALL_CREATURE_SCURRY", "Дрібні істоти")
     }
     .with_phrases(phrases(
         &[
@@ -1196,7 +1196,7 @@ fn small_creature_scurry() -> EventDefinition {
 fn footsteps() -> EventDefinition {
     EventDefinition {
         category: "environment".to_string(),
-        ..EventDefinition::new("FOOTSTEPS", "Footsteps")
+        ..EventDefinition::new("FOOTSTEPS", "Кроки")
     }
     .with_phrases(phrases(
         &[
@@ -1280,7 +1280,7 @@ fn footsteps() -> EventDefinition {
 fn magic_cast() -> EventDefinition {
     EventDefinition {
         category: "magic".to_string(),
-        ..EventDefinition::new("MAGIC_CAST", "Magic Cast")
+        ..EventDefinition::new("MAGIC_CAST", "Заклинання")
     }
     .with_phrases(phrases(
         &[
@@ -1394,7 +1394,7 @@ fn magic_cast() -> EventDefinition {
 fn coins() -> EventDefinition {
     EventDefinition {
         category: "items".to_string(),
-        ..EventDefinition::new("COINS", "Coins")
+        ..EventDefinition::new("COINS", "Монети")
     }
     .with_phrases(phrases(
         &[
@@ -1491,7 +1491,7 @@ fn coins() -> EventDefinition {
 fn glass_shatter() -> EventDefinition {
     EventDefinition {
         category: "environment".to_string(),
-        ..EventDefinition::new("GLASS_SHATTER", "Glass Shatter")
+        ..EventDefinition::new("GLASS_SHATTER", "Розбите скло")
     }
     .with_phrases(phrases(
         &[
@@ -1609,7 +1609,7 @@ fn glass_shatter() -> EventDefinition {
 fn fireball() -> EventDefinition {
     EventDefinition {
         category: "magic".to_string(),
-        ..EventDefinition::new("FIREBALL", "Fireball")
+        ..EventDefinition::new("FIREBALL", "Вогняна куля")
     }
     .with_phrases(phrases(
         &[
@@ -1716,7 +1716,7 @@ fn fireball() -> EventDefinition {
 fn spell_heal() -> EventDefinition {
     EventDefinition {
         category: "magic".to_string(),
-        ..EventDefinition::new("SPELL_HEAL", "Healing Magic")
+        ..EventDefinition::new("SPELL_HEAL", "Зцілення")
     }
     .with_phrases(phrases(
         &[
@@ -1825,7 +1825,7 @@ fn spell_heal() -> EventDefinition {
 fn spell_teleport() -> EventDefinition {
     EventDefinition {
         category: "magic".to_string(),
-        ..EventDefinition::new("SPELL_TELEPORT", "Teleport")
+        ..EventDefinition::new("SPELL_TELEPORT", "Телепорт")
     }
     .with_phrases(phrases(
         &[
@@ -1925,7 +1925,7 @@ fn spell_teleport() -> EventDefinition {
 fn spell_ice() -> EventDefinition {
     EventDefinition {
         category: "magic".to_string(),
-        ..EventDefinition::new("SPELL_ICE", "Ice Magic")
+        ..EventDefinition::new("SPELL_ICE", "Крижана магія")
     }
     .with_phrases(phrases(
         &[
@@ -2019,7 +2019,7 @@ fn spell_ice() -> EventDefinition {
 fn sword_unsheathe() -> EventDefinition {
     EventDefinition {
         category: "combat".to_string(),
-        ..EventDefinition::new("SWORD_UNSHEATHE", "Drawing a Blade")
+        ..EventDefinition::new("SWORD_UNSHEATHE", "Витягання клинка")
     }
     .with_phrases(phrases(
         &[
@@ -2117,7 +2117,7 @@ fn sword_unsheathe() -> EventDefinition {
 fn shield_block() -> EventDefinition {
     EventDefinition {
         category: "combat".to_string(),
-        ..EventDefinition::new("SHIELD_BLOCK", "Blocks and Parries")
+        ..EventDefinition::new("SHIELD_BLOCK", "Блок щитом")
     }
     .with_phrases(phrases(
         &[
@@ -2217,7 +2217,7 @@ fn shield_block() -> EventDefinition {
 fn armor_clank() -> EventDefinition {
     EventDefinition {
         category: "combat".to_string(),
-        ..EventDefinition::new("ARMOR_CLANK", "Armour")
+        ..EventDefinition::new("ARMOR_CLANK", "Обладунки")
     }
     .with_phrases(phrases(
         &[
@@ -2316,7 +2316,7 @@ fn armor_clank() -> EventDefinition {
 fn body_fall() -> EventDefinition {
     EventDefinition {
         category: "combat".to_string(),
-        ..EventDefinition::new("BODY_FALL", "A Body Hits the Ground")
+        ..EventDefinition::new("BODY_FALL", "Тіло падає")
     }
     .with_phrases(phrases(
         &[
@@ -2412,7 +2412,7 @@ fn body_fall() -> EventDefinition {
 fn scream() -> EventDefinition {
     EventDefinition {
         category: "combat".to_string(),
-        ..EventDefinition::new("SCREAM", "Screams")
+        ..EventDefinition::new("SCREAM", "Крик")
     }
     .with_phrases(phrases(
         &[
@@ -2523,7 +2523,7 @@ fn scream() -> EventDefinition {
 fn dragon_roar() -> EventDefinition {
     EventDefinition {
         category: "creatures".to_string(),
-        ..EventDefinition::new("DRAGON_ROAR", "Dragons")
+        ..EventDefinition::new("DRAGON_ROAR", "Дракони")
     }
     .with_phrases(phrases(
         &[
@@ -2623,7 +2623,7 @@ fn dragon_roar() -> EventDefinition {
 fn horse() -> EventDefinition {
     EventDefinition {
         category: "creatures".to_string(),
-        ..EventDefinition::new("HORSE", "Horses")
+        ..EventDefinition::new("HORSE", "Коні")
     }
     .with_phrases(phrases(
         &[
@@ -2732,7 +2732,7 @@ fn horse() -> EventDefinition {
 fn ghost_moan() -> EventDefinition {
     EventDefinition {
         category: "creatures".to_string(),
-        ..EventDefinition::new("GHOST_MOAN", "Ghosts and Spirits")
+        ..EventDefinition::new("GHOST_MOAN", "Привиди")
     }
     .with_phrases(phrases(
         &[
@@ -2832,7 +2832,7 @@ fn ghost_moan() -> EventDefinition {
 fn bones() -> EventDefinition {
     EventDefinition {
         category: "creatures".to_string(),
-        ..EventDefinition::new("BONES", "Bones and Skeletons")
+        ..EventDefinition::new("BONES", "Кістки й скелети")
     }
     .with_phrases(phrases(
         &[
@@ -2930,7 +2930,7 @@ fn bones() -> EventDefinition {
 fn crow() -> EventDefinition {
     EventDefinition {
         category: "creatures".to_string(),
-        ..EventDefinition::new("CROW", "Crows and Ravens")
+        ..EventDefinition::new("CROW", "Ворони")
     }
     .with_phrases(phrases(
         &[
@@ -3023,7 +3023,7 @@ fn crow() -> EventDefinition {
 fn potion_drink() -> EventDefinition {
     EventDefinition {
         category: "items".to_string(),
-        ..EventDefinition::new("POTION_DRINK", "Drinking a Potion")
+        ..EventDefinition::new("POTION_DRINK", "Питво зілля")
     }
     .with_phrases(phrases(
         &[
@@ -3125,7 +3125,7 @@ fn potion_drink() -> EventDefinition {
 fn dice_roll() -> EventDefinition {
     EventDefinition {
         category: "items".to_string(),
-        ..EventDefinition::new("DICE_ROLL", "Dice")
+        ..EventDefinition::new("DICE_ROLL", "Кубики")
     }
     .with_phrases(phrases(
         &[
@@ -3216,7 +3216,7 @@ fn dice_roll() -> EventDefinition {
 fn keys_lock() -> EventDefinition {
     EventDefinition {
         category: "items".to_string(),
-        ..EventDefinition::new("KEYS_LOCK", "Keys and Locks")
+        ..EventDefinition::new("KEYS_LOCK", "Ключі й замки")
     }
     .with_phrases(phrases(
         &[
@@ -3325,7 +3325,7 @@ fn keys_lock() -> EventDefinition {
 fn scroll_paper() -> EventDefinition {
     EventDefinition {
         category: "items".to_string(),
-        ..EventDefinition::new("SCROLL_PAPER", "Scrolls and Maps")
+        ..EventDefinition::new("SCROLL_PAPER", "Сувої й карти")
     }
     .with_phrases(phrases(
         &[
@@ -3427,7 +3427,7 @@ fn scroll_paper() -> EventDefinition {
 fn wind() -> EventDefinition {
     EventDefinition {
         category: "weather".to_string(),
-        ..EventDefinition::new("WIND", "Wind")
+        ..EventDefinition::new("WIND", "Вітер")
     }
     .with_phrases(phrases(
         &[
@@ -3523,7 +3523,7 @@ fn wind() -> EventDefinition {
 fn rain() -> EventDefinition {
     EventDefinition {
         category: "weather".to_string(),
-        ..EventDefinition::new("RAIN", "Rain")
+        ..EventDefinition::new("RAIN", "Дощ")
     }
     .with_phrases(phrases(
         &[
@@ -3612,7 +3612,7 @@ fn rain() -> EventDefinition {
 fn bell() -> EventDefinition {
     EventDefinition {
         category: "environment".to_string(),
-        ..EventDefinition::new("BELL", "Bells")
+        ..EventDefinition::new("BELL", "Дзвони")
     }
     .with_phrases(phrases(
         &[
@@ -3697,7 +3697,7 @@ fn bell() -> EventDefinition {
 fn tavern() -> EventDefinition {
     EventDefinition {
         category: "environment".to_string(),
-        ..EventDefinition::new("TAVERN", "Tavern")
+        ..EventDefinition::new("TAVERN", "Таверна")
     }
     .with_phrases(phrases(
         &[

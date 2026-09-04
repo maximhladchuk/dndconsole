@@ -146,7 +146,21 @@ mod tests {
     fn migrations_run_on_a_fresh_database() {
         let db = Db::open_in_memory().expect("open");
         // Bump this with every migration added under `src/migrations`.
-        assert_eq!(db.schema_version().expect("version"), Some(3));
+        assert_eq!(db.schema_version().expect("version"), Some(4));
+    }
+
+    /// V4 renames the built-in sound groups. The pack installer finds a group by name,
+    /// so a database that missed this migration would grow a second, empty copy of every
+    /// group rather than reusing the one that already holds the sounds.
+    #[test]
+    fn renaming_the_groups_leaves_a_hand_named_group_alone() {
+        let db = Db::open_in_memory().expect("open");
+        let mine = db.sounds().create_group("Doors opening").expect("create");
+
+        // The migration has already run on this fresh database, so a group created
+        // afterwards keeps the name it was given.
+        let after = db.sounds().group(mine.id).expect("read");
+        assert_eq!(after.name, "Doors opening");
     }
 
     #[test]

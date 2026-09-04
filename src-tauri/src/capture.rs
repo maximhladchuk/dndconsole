@@ -55,7 +55,7 @@ impl CaptureState {
 
     /// Take the audio captured since the last call, as 16 kHz mono.
     ///
-    /// From Phase 4 this feeds voice activity detection; for now it backs the
+    /// This feeds voice activity detection, and it backs the
     /// diagnostics in Debug Mode.
     pub fn take_pcm(&self) -> Vec<f32> {
         let guard = self.lock();

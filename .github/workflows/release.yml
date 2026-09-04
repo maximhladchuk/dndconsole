@@ -1,0 +1,85 @@
+name: Release
+
+# Builds an installer for each platform and attaches it to a GitHub release, so that
+# installing does not mean installing Rust, CMake, Node and a C++ toolchain first.
+#
+# Trigger by pushing a tag that matches the version in Cargo.toml:
+#
+#     scripts/version.sh minor && git commit -am "Release" && git tag v0.2.0 && git push --tags
+on:
+  push:
+    tags: ['v*']
+  # So the build can be proved without cutting a release.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      # One platform failing must not throw away an installer that did build.
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            name: macOS (Apple Silicon)
+          - platform: macos-13
+            target: x86_64-apple-darwin
+            name: macOS (Intel)
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: Windows
+
+    runs-on: ${{ matrix.platform }}
+    name: ${{ matrix.name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # whisper.cpp is built from source by whisper-rs-sys and needs CMake. The macOS
+      # and Windows runners already carry a C/C++ toolchain.
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - run: npm ci
+
+      # The three files that carry the version have to agree before one of them ends up
+      # printed on an installer.
+      - name: Check the version is consistent
+        run: cargo test -p dndsound --test version
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --target ${{ matrix.target }}
+          tagName: ${{ github.ref_name }}
+          releaseName: dndsound ${{ github.ref_name }}
+          releaseDraft: true
+          releaseBody: |
+            Завантаж файл для своєї системи і встанови.
+
+            **macOS** — `.dmg`. Збірка не підписана, тому при першому запуску: правий
+            клік на програмі → **Відкрити**. Звичайний подвійний клік Gatekeeper
+            заблокує.
+
+            **Windows** — `.msi` або `.exe`. Збірка не підписана, тому SmartScreen
+            покаже попередження: **Додатково → Виконати в будь-якому разі**.
+
+            При першому запуску програма завантажить моделі розпізнавання (близько
+            575 МБ) і набір звуків (13 МБ). Після цього інтернет не потрібен.

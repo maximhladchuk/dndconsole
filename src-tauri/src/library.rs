@@ -1,6 +1,6 @@
 //! Importing sound files into the library.
 //!
-//! Two modes, both required by the spec:
+//! Two modes:
 //!
 //! * **referenced** — the default. The file stays where the user keeps it and the
 //!   database records its path. Nothing is duplicated.
@@ -8,7 +8,7 @@
 //!   or reorganising the original folder cannot break the library.
 //!
 //! Every path crossing this boundary is validated: a command argument is untrusted
-//! input, and the spec is explicit that imported files must be checked.
+//! input, and imported files are checked before anything is stored.
 
 use std::path::{Path, PathBuf};
 

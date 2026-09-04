@@ -13,5 +13,5 @@ the right sound plays. All of that is deterministic and can be asserted.
 
 **What they are not:** real narration. Synthetic voices are cleaner, flatter and more
 predictable than a Dungeon Master at a noisy table. Detection thresholds tuned only
-against these would be tuned against the wrong thing. Real recordings come in Phase 9,
+against these would be tuned against the wrong thing. Real recordings are the next step,
 via the recorded-audio test mode.

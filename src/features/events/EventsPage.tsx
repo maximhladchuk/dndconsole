@@ -5,6 +5,20 @@ import { Panel } from '../../ui/Panel';
 
 import { EventEditor } from './EventEditor';
 
+/**
+ * Categories are stored as the identifiers the seed uses, so they stay stable while the
+ * interface language does not. Anything unrecognised falls through as itself rather than
+ * disappearing — a category someone invents in the editor still has to show.
+ */
+const CATEGORIES: Record<string, string> = {
+  environment: 'оточення',
+  combat: 'бій',
+  creatures: 'істоти',
+  magic: 'магія',
+  weather: 'погода',
+  items: 'речі',
+};
+
 export function EventsPage() {
   const store = useEventsStore();
 
@@ -42,7 +56,8 @@ export function EventsPage() {
                 >
                   <span className={definition.enabled ? '' : 'is-dim'}>{definition.displayName}</span>
                   <span className="sounds__meta">
-                    {definition.category} · {definition.phrases.length} фраз ·{' '}
+                    {CATEGORIES[definition.category] ?? definition.category} ·{' '}
+                    {definition.phrases.length} фраз ·{' '}
                     {soundGroupId === null ? 'без звуку' : 'звук призначено'}
                   </span>
                 </button>

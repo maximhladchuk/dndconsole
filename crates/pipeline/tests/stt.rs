@@ -105,7 +105,7 @@ fn ukrainian_narration_is_transcribed() {
 
 /// The synthetic voice slurs "дістає меч" badly enough that whisper writes
 /// "дістаємеш", so this asserts the sentence is recognisably about a goblin rather than
-/// demanding an exact match. Transcription accuracy on real narration is a Phase 9
+/// demanding an exact match. Transcription accuracy on real narration is a tuning
 /// question, measured against real recordings — not against text-to-speech.
 #[test]
 fn ukrainian_combat_narration_is_recognisably_about_the_goblin() {
@@ -143,6 +143,59 @@ fn silence_is_rejected_rather_than_hallucinated_into_words() {
     assert!(
         !recognizer.is_trustworthy(&transcript),
         "silence must never produce a transcript the pipeline believes"
+    );
+}
+
+/// The prompted path, which is what the application runs whenever a language is picked.
+///
+/// A prompt is fed to the decoder as the previous sentence, and whisper is entirely
+/// willing to decide the previous sentence simply continued. A bilingual prompt did
+/// exactly that here — silence came back as "The cleric heals your wounds", which would
+/// have played a healing sound into a quiet room.
+#[test]
+fn silence_is_still_rejected_when_a_vocabulary_prompt_is_used() {
+    for language in ["uk", "en"] {
+        let Some(recognizer) = recognizer(SttConfig::for_language(Some(language))) else {
+            return;
+        };
+
+        let transcript = recognizer
+            .transcribe(&read_wav("silence.wav"), false)
+            .expect("transcription should not error on silence");
+
+        println!(
+            "silence with the {language} prompt: {:?} (no_speech {:.2})",
+            transcript.text, transcript.no_speech_probability
+        );
+        assert!(
+            !recognizer.is_trustworthy(&transcript),
+            "silence with the {language} prompt produced a transcript the pipeline believes: {:?}",
+            transcript.text
+        );
+    }
+}
+
+/// The prompt exists to fix this exact sentence: without one, whisper writes "дістає
+/// **меж** і різко **біє**".
+#[test]
+fn a_prompted_decode_spells_the_fantasy_words() {
+    let Some(recognizer) = recognizer(SttConfig::for_language(Some("uk"))) else {
+        return;
+    };
+
+    let transcript = recognizer
+        .transcribe(&read_wav("uk_sword.wav"), false)
+        .expect("transcription should succeed");
+
+    println!("prompted ukrainian combat: {:?}", transcript.text);
+    let text = normalized(&transcript.text);
+
+    // Cyrillic, not "Goblin" — a bilingual prompt switched scripts mid-sentence, and no
+    // term list would ever match that.
+    assert!(text.contains("гобл"), "{text}");
+    assert!(
+        text.contains("меч"),
+        "expected 'меч', not 'меж' or 'меш': {text}"
     );
 }
 

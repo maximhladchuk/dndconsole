@@ -129,7 +129,7 @@ export function EventEditor({
         </button>
       </div>
       <p className="group-editor__count">
-        <code className="field__mono">{draft.id}</code> · {draft.category || 'uncategorised'}
+        <code className="field__mono">{draft.id}</code> · {draft.category || 'без категорії'}
         {event.builtin
           ? event.userModified
             ? ' · змінено вручну — оновлення вбудованих фраз більше не застосовуються'

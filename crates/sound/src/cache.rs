@@ -1,6 +1,6 @@
 //! A least-recently-used cache bounded by *bytes*, not by entry count.
 //!
-//! The spec is explicit that a 5,000-sound library must never be loaded into RAM. A
+//! A 5,000-sound library must never be loaded into RAM. A
 //! count-based cache cannot express that: 200 short door creaks and 200 two-minute
 //! ambience beds are wildly different amounts of memory. So the budget is in bytes and
 //! entries are evicted until the total fits.

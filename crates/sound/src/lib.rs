@@ -2,7 +2,7 @@
 //!
 //! Deliberately separate from detection. This crate is handed a file and a gain and
 //! plays it; it never decides *whether* a sound should happen. That split is what makes
-//! both halves testable — see `docs/ARCHITECTURE.md`.
+//! both halves testable.
 
 mod cache;
 mod error;
@@ -32,7 +32,7 @@ use crate::cache::ByteBudgetCache;
 /// staying far below what a long session can afford to leak.
 pub const DEFAULT_CACHE_BUDGET_BYTES: usize = 64 * 1024 * 1024;
 
-/// Logical output buses, as required by the spec.
+/// Logical output buses.
 ///
 /// MUSIC and VOICE exist as first-class routes from the start so that adding them later
 /// is a UI change rather than an audio-graph change.

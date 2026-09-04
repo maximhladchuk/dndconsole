@@ -70,7 +70,7 @@ fn a_paraphrase_fires_where_unrelated_table_talk_stays_silent() {
     // skitters over the flagstones" was a paraphrase this layer handled when there were
     // fourteen events. With thirty-six, its nearest neighbour is the bones event, which
     // has no action word in the sentence, so the gate rejects it and nothing plays. A
-    // miss, not a wrong sound — which is the trade the spec asks for.
+    // miss, not a wrong sound — which is the trade this project makes everywhere.
 
     // Talk at the table that no event covers. "make a perception check" and "кинь
     // кубик" used to be here and were moved out: once there was a dice event, they
@@ -127,7 +127,7 @@ fn a_paraphrase_fires_where_unrelated_table_talk_stays_silent() {
 
 #[test]
 fn the_scurrying_creature_is_reached_without_sharing_a_word() {
-    // The spec's example: no "rat", no "mouse", no phrase from the event.
+    // The case this layer exists for: no "rat", no "mouse", no phrase from the event.
     let Some((index, detector)) = index() else {
         return;
     };
@@ -230,7 +230,7 @@ fn embedding_a_transcript_is_fast_enough_for_the_hot_path() {
     );
 }
 
-/// The gate from the roadmap: the semantic layer may add recall, but it may not cost a
+/// The rule for this layer: it may add recall, but it may not cost a
 /// single point of precision on the corpus.
 #[test]
 fn the_semantic_layer_costs_no_precision_and_adds_recall() {

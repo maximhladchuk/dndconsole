@@ -2,9 +2,8 @@ use serde::Serialize;
 
 /// Error returned to the frontend.
 ///
-/// The spec is explicit that failures must be explained rather than silently swallowed,
-/// so every command error carries a stable `kind` the UI can branch on plus a message
-/// written for a human.
+/// Failures are explained rather than silently swallowed, so every command error
+/// carries a stable `kind` the UI can branch on plus a message written for a human.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CommandError {

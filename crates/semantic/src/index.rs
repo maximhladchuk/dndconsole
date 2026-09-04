@@ -4,7 +4,7 @@
 //! matrix. A transcript is embedded once and compared against all of them — a few
 //! million multiply-adds, far cheaper than the tokenizer that produced the vector.
 //!
-//! The spec's scale requirement is 5,000 events. Ten phrases each is 50,000 vectors of
+//! The design target is 5,000 events. Ten phrases each is 50,000 vectors of
 //! 384 floats: 77 MB and one pass. That is still the cheap half of detection, so there
 //! is no index structure here beyond a flat scan — an approximate index would add
 //! failure modes to save time we are not spending.
@@ -26,7 +26,7 @@ pub struct SemanticEventIndex {
 /// Somewhere to keep phrase vectors between runs.
 ///
 /// Embedding a phrase costs a few milliseconds, which is nothing for five events and
-/// two and a half minutes for the five thousand the spec asks the architecture to
+/// two and a half minutes for the five thousand events the architecture has to
 /// support. Implemented over SQLite by the application; `NoCache` is for tests.
 pub trait EmbeddingCache {
     fn get(&self, event_id: &str, phrase_text: &str) -> Option<Vec<f32>>;

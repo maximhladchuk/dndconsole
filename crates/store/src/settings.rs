@@ -121,8 +121,8 @@ pub struct AppSettings {
 
     // --- detection ---------------------------------------------------------
     /// Global bias applied on top of per-event thresholds. Higher is stricter.
-    /// The spec's priority order puts a low false-positive rate above recall,
-    /// so this starts on the strict side of neutral.
+    /// A low false-positive rate matters more than recall, so this starts on the
+    /// strict side of neutral.
     pub event_sensitivity: f32,
 
     // --- output ------------------------------------------------------------
@@ -157,7 +157,7 @@ impl Default for AppSettings {
             language: "auto".to_string(),
 
             // Starting points, to be tuned against real tabletop recordings.
-            // See docs/AUDIO_PIPELINE.md.
+            // Tuned against real recordings.
             vad_speech_threshold: 0.5,
             vad_min_speech_ms: 250,
             vad_silence_timeout_ms: 700,

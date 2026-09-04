@@ -116,7 +116,7 @@ impl<'a> SoundsRepo<'a> {
     /// Record an imported file.
     ///
     /// `file_path` is unique, so importing the same file twice updates the existing row
-    /// instead of creating a duplicate — the spec is explicit about not duplicating
+    /// instead of creating a duplicate, rather than duplicating
     /// audio unnecessarily.
     pub fn import(&self, new: &NewSound) -> Result<Sound> {
         let now = now_ms();

@@ -13,7 +13,7 @@ use crate::state::AppState;
 /// Whisper model used for the in-flight partial transcripts.
 ///
 /// Measured at roughly a quarter of turbo's decode time, which is what makes triggering
-/// mid-sentence possible. See docs/PERFORMANCE.md.
+/// mid-sentence possible: ~190 ms against turbo's ~840 ms, measured.
 const FAST_MODEL_ID: &str = "small-q5_1";
 const VAD_MODEL_ID: &str = "silero-vad-16k";
 
@@ -76,13 +76,12 @@ pub fn start_session(app: AppHandle, state: State<'_, AppState>) -> Res<SessionS
             post_roll_ms: settings.vad_post_roll_ms,
             max_segment_ms: settings.vad_max_segment_ms,
         },
-        stt: SttConfig {
-            language: match settings.language.as_str() {
-                "auto" => None,
-                other => Some(other.to_string()),
-            },
-            ..SttConfig::default()
-        },
+        // The vocabulary prompt is chosen with the language rather than beside it: a
+        // Ukrainian prompt in front of English audio wrecks the transcript.
+        stt: SttConfig::for_language(match settings.language.as_str() {
+            "auto" => None,
+            other => Some(other),
+        }),
         partials_enabled: fast_model_path.is_some(),
         ..SessionConfig::default()
     };
@@ -222,13 +221,10 @@ pub fn run_recorded_audio(state: State<'_, AppState>, path: String) -> Res<Recor
             post_roll_ms: settings.vad_post_roll_ms,
             max_segment_ms: settings.vad_max_segment_ms,
         },
-        SttConfig {
-            language: match settings.language.as_str() {
-                "auto" => None,
-                other => Some(other.to_string()),
-            },
-            ..SttConfig::default()
-        },
+        SttConfig::for_language(match settings.language.as_str() {
+            "auto" => None,
+            other => Some(other),
+        }),
     )
     .map_err(|e| CommandError::new("recordedRunFailed", e.to_string()))?;
 

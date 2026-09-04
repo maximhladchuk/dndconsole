@@ -28,7 +28,7 @@ const FRAMES_PER_30S: f32 = 1500.0;
 ///
 /// Measured on this machine by `examples/ctx_probe.rs`. At 128 frames "б'є мечем" came
 /// back as an endless "бі-мечем, бі-мечем, ..."; at 256 as "Бі-м-чем."; at 512 as
-/// "Б'є мечем." 768 is both slower and no better. See docs/PERFORMANCE.md.
+/// "Б'є мечем." 768 is both slower and no better.
 const DEFAULT_AUDIO_CONTEXT_FLOOR: i32 = 512;
 
 /// Whisper hallucinates fluent nonsense from silence and background noise. These are the
@@ -46,6 +46,18 @@ const HALLUCINATIONS: &[&str] = &[
     "продолжение следует",
     "субтитры сделал",
     "поделитесь этим видео",
+    // Caught by `examples/stt_probe.rs` running the silence fixture: whisper returns
+    // "Дякую за перегляд!" with a no-speech probability of 0.00, and every threshold
+    // waves it through. The bare word "дякую" was already listed as a standalone
+    // hallucination, but the sign-off is three words, so nothing matched it.
+    "дякую за перегляд",
+    "дякую за увагу",
+    "спасибо за просмотр",
+    "спасибо за внимание",
+    "дякуємо за перегляд",
+    "підписуйтесь на канал",
+    "подписывайтесь на канал",
+    "ставте лайки",
 ];
 
 /// Hallucinations that are only hallucinations when they are the *entire* transcript.
@@ -69,6 +81,53 @@ const STANDALONE_HALLUCINATIONS: &[&str] = &[
     "субтитри",
     "субтитры",
 ];
+
+/// A sentence of narration in each supported language, fed to the decoder as if it were
+/// the sentence before the one being transcribed.
+///
+/// Whisper spells what it expects to hear, and it does not expect a Dungeon Master.
+/// Measured with `examples/stt_probe.rs`: without a prompt, "Гоблін дістає меч і різко
+/// б'є по тобі" comes back as "дістає **меж** і різко **біє**"; with one, it is right.
+/// The cost is about 6 ms on a three-second utterance.
+///
+/// Two things about the shape of it were also measured, and neither is guessable:
+///
+/// * **Prose, not a glossary.** A comma-separated word list containing `меч` changed
+///   nothing at all, even though the word whisper got wrong was in it. The prompt is
+///   read as a preceding *sentence*, so it has to be one.
+/// * **Ukrainian only.** This is the uncomfortable one. A prompt is fed as the previous
+///   sentence and whisper is entirely willing to decide that sentence simply continued:
+///   given silence, the English prompt came back as `"The cleric heals your wounds. The
+///   cler"` — a healing sound played into a quiet room. The Ukrainian prompt, on the same
+///   silence, produced whisper's ordinary `"Дякую за перегляд!"`, which the hallucination
+///   filter catches.
+///
+///   That asymmetry cannot be filtered away in general, because the prompt is written as
+///   the narration the application listens for, so reciting it is indistinguishable from
+///   correctly hearing it. It is settled by what each prompt is worth: the Ukrainian one
+///   fixes a real error, the English one fixed nothing measurable. A prompt that buys
+///   nothing does not get to carry that risk.
+///
+///   Automatic detection gets no prompt either: a Ukrainian prompt in front of English
+///   audio returned `"Гоблин пульс от і свінь і ві."`, and prompting in both languages
+///   wrote `"Goblin"` in Latin script inside an otherwise Ukrainian sentence.
+const NARRATION_PROMPT_UK: &str = concat!(
+    "Гоблін дістає меч і б'є по тобі. ",
+    "Чарівник кидає вогняну кулю. ",
+    "Жрець зцілює твої рани. ",
+    "Кидай д20 на ініціативу.",
+);
+
+/// The prompt to send for a given language setting, if any.
+///
+/// Only Ukrainian is prompted. English and automatic detection were both measured and
+/// both are worse prompted than not.
+pub fn narration_prompt(language: Option<&str>) -> Option<&'static str> {
+    match language {
+        Some("uk") => Some(NARRATION_PROMPT_UK),
+        _ => None,
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Transcript {
@@ -111,13 +170,41 @@ pub struct SttConfig {
     pub no_speech_threshold: f32,
     /// Trim the encoder context to the real audio length.
     pub trim_audio_context: bool,
+    /// Vocabulary hint fed to the decoder as if it were the preceding sentence.
+    ///
+    /// Whisper spells what it expects to hear. Fantasy nouns are not in what it expects,
+    /// so `фаєрбол` comes back as something plausible and wrong. A prompt biases the
+    /// spelling without constraining the content — it is a hint, not a grammar.
+    ///
+    /// `None` sends no prompt at all, which is whisper's stock behaviour.
+    pub initial_prompt: Option<String>,
+    /// Beam width. `None` is greedy decoding, which is what this shipped with.
+    ///
+    /// A beam explores several continuations before committing, which is exactly the
+    /// case an unfamiliar word creates. It costs time proportional to the width.
+    pub beam_size: Option<u8>,
     /// Smallest encoder context trimming is allowed to ask for, in frames.
     ///
     /// Trimming hard is the single biggest speed win available, but below a certain
     /// width whisper stops producing usable Ukrainian: words come out misspelled and
     /// short utterances collapse into a repetition loop. This floor is where that
-    /// stops, measured — see `docs/PERFORMANCE.md`.
+    /// stops. Measured, not guessed.
     pub audio_context_floor: i32,
+}
+
+impl SttConfig {
+    /// A config for one language setting, with the matching prompt already chosen.
+    ///
+    /// The language and its prompt have to agree, and the failure when they do not is
+    /// silent and severe — a Ukrainian prompt in front of English audio transliterates
+    /// the whole sentence — so nothing sets them separately.
+    pub fn for_language(language: Option<&str>) -> Self {
+        Self {
+            language: language.map(str::to_string),
+            initial_prompt: narration_prompt(language).map(str::to_string),
+            ..Self::default()
+        }
+    }
 }
 
 impl Default for SttConfig {
@@ -129,6 +216,12 @@ impl Default for SttConfig {
             // faster, because the work is split evenly and then waits on the stragglers.
             threads: 8,
             no_speech_threshold: 0.6,
+            // `language` defaults to automatic, which is the case that gets no prompt.
+            initial_prompt: None,
+            // Beam search was measured and rejected: it costs 25-90% more time and made
+            // the one Ukrainian error in the fixtures *worse* — "меж" became "меш", and
+            // with a prompt as well, "дістаємеш". See `examples/stt_probe.rs`.
+            beam_size: None,
             trim_audio_context: true,
             audio_context_floor: DEFAULT_AUDIO_CONTEXT_FLOOR,
         }
@@ -186,7 +279,14 @@ impl SpeechRecognizer {
             .create_state()
             .map_err(|e| Error::Stt(e.to_string()))?;
 
-        let mut params = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
+        let mut params = match self.config.beam_size {
+            Some(beam_size) => FullParams::new(SamplingStrategy::BeamSearch {
+                beam_size: i32::from(beam_size),
+                // Negative means whisper.cpp's own default.
+                patience: -1.0,
+            }),
+            None => FullParams::new(SamplingStrategy::Greedy { best_of: 1 }),
+        };
         params.set_n_threads(i32::from(self.config.threads));
         params.set_translate(false);
         params.set_no_context(true);
@@ -195,6 +295,9 @@ impl SpeechRecognizer {
         params.set_print_progress(false);
         params.set_print_realtime(false);
         params.set_print_timestamps(false);
+        if let Some(prompt) = self.config.initial_prompt.as_deref() {
+            params.set_initial_prompt(prompt);
+        }
         params.set_suppress_blank(true);
         // Non-speech tokens are noise for our purpose: we want words, not "(door creaks)".
         params.set_suppress_nst(true);
@@ -258,7 +361,7 @@ impl SpeechRecognizer {
     /// English-only, or when detection fails — in every case the caller falls back to
     /// whisper's own detection, which is a degradation rather than a failure.
     ///
-    /// This costs one extra encoder pass over the segment. See `docs/PERFORMANCE.md` for
+    /// This costs one extra encoder pass over the segment. See the measurement for
     /// what that measures at; it is the reason the session runs detection on the small
     /// model and reuses the answer for the turbo decode.
     fn restricted_language(
@@ -561,5 +664,46 @@ mod tests {
         assert!(is_hallucination("Дякую!"));
         assert!(is_hallucination("Спасибо."));
         assert!(is_hallucination("You"));
+    }
+
+    /// Only Ukrainian is prompted, and the reasons are measurements rather than taste:
+    /// the English prompt was recited back out of pure silence as "The cleric heals your
+    /// wounds", and it fixed nothing on the fixtures to pay for that. Automatic
+    /// detection with a Ukrainian prompt turned English audio into
+    /// "Гоблин пульс от і свінь і ві."
+    #[test]
+    fn only_ukrainian_is_prompted() {
+        assert_eq!(narration_prompt(None), None);
+        assert_eq!(narration_prompt(Some("en")), None);
+        assert_eq!(narration_prompt(Some("de")), None);
+
+        let uk = narration_prompt(Some("uk")).expect("uk is prompted");
+        assert!(uk.contains("Гоблін") && !uk.contains("goblin"), "{uk}");
+    }
+
+    /// The language and the prompt are set together or the pairing goes wrong silently.
+    #[test]
+    fn a_config_built_for_a_language_carries_that_languages_prompt() {
+        for language in [Some("uk"), Some("en"), None] {
+            let config = SttConfig::for_language(language);
+            assert_eq!(config.language.as_deref(), language);
+            assert_eq!(config.initial_prompt.as_deref(), narration_prompt(language));
+        }
+    }
+
+    /// Found by running the silence fixture, not by thinking about it: whisper answers
+    /// "Дякую за перегляд!" with a no-speech probability of 0.00 and the old lists let
+    /// it straight through — "дякую" alone was listed, the sign-off was not.
+    #[test]
+    fn a_sign_off_invented_from_silence_is_recognised_as_invention() {
+        assert!(is_hallucination("Дякую за перегляд!"));
+        assert!(is_hallucination("дякую за перегляд"));
+        assert!(is_hallucination("Спасибо за просмотр."));
+        assert!(is_hallucination("Підписуйтесь на канал!"));
+
+        // And narration that happens to contain the same words still gets through.
+        assert!(!is_hallucination(
+            "Він дякує за перегляд карти і згортає її."
+        ));
     }
 }

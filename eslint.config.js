@@ -17,7 +17,7 @@ export default tseslint.config(
     plugins: { 'react-hooks': reactHooks },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // The spec forbids `any` unless unavoidable and documented, so an explicit
+      // `any` is forbidden unless unavoidable and documented, so an explicit
       // `any` is an error rather than a warning.
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',

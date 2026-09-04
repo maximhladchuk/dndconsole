@@ -17,3 +17,8 @@ models/
 .env
 .env.local
 freesound.json
+
+# Design notes, decision records and the implementation plan. Kept on this machine,
+# not published: they describe how the thing was built, which is not what someone
+# cloning it needs.
+docs/

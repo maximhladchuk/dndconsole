@@ -59,10 +59,8 @@ real microphone, and transcribe real speech in Ukrainian and English. Detection 
 **100% recall and zero false positives** on a corpus of 240 narration lines and 28
 lines that must stay silent.
 
-Remaining: Phase 10 (long-session soak testing), global hotkeys, and tuning against real
-Dungeon Master recordings rather than synthetic speech.
-
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the phase plan.
+Remaining: long-session soak testing, global hotkeys, and tuning against real Dungeon
+Master recordings rather than synthetic speech.
 
 ## Sounds
 
@@ -114,24 +112,12 @@ That mechanism exists because of a real failure: an ordinary Ukrainian verb was 
 from the sword event, and adding it changed nothing for anyone who had already launched
 the application, because the seed only ever ran on an empty database.
 
-## Documentation
-
-| Document | What's in it |
-|---|---|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System shape, threading, layering, and why |
-| [AUDIO_PIPELINE.md](docs/AUDIO_PIPELINE.md) | Capture, VAD, STT, playback in detail |
-| [EVENT_ENGINE.md](docs/EVENT_ENGINE.md) | The four detection layers and the anti-false-positive machinery |
-| [MODEL_SELECTION.md](docs/MODEL_SELECTION.md) | Models, verified sizes, licenses, why each was chosen |
-| [DECISIONS.md](docs/DECISIONS.md) | Decision records: problem, options, choice, tradeoffs |
-| [DEPENDENCIES.md](docs/DEPENDENCIES.md) | Every dependency with verified version and license |
-| [RISKS.md](docs/RISKS.md) | What can go wrong, and the plan for each |
-| [PERFORMANCE.md](docs/PERFORMANCE.md) | Measured numbers only — empty until measured |
-| [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Setup and workflow |
-
 ## Installing
 
-See **[INSTALL.md](INSTALL.md)** (Ukrainian) — system requirements, macOS and Windows
-builds, and the first-launch checklist.
+Download a build from [Releases](https://github.com/maximhladchuk/dndconsole/releases) —
+`.dmg` for macOS, `.exe`/`.msi` for Windows. Neither is code-signed, so the first launch
+needs one click past Gatekeeper or SmartScreen; **[INSTALL.md](INSTALL.md)** (Ukrainian)
+has the exact steps, the measured system requirements, and how to build from source.
 
 Verified on macOS (Apple Silicon). Windows is **not verified**: the dependency graph
 resolves for `x86_64-pc-windows-msvc`, the pure-Rust crates cross-compile, and the one
@@ -140,4 +126,4 @@ platforms — is now selected per target. Nobody has built or run it on Windows.
 
 Without Metal, whisper runs on the CPU: measured on the same machine with the backend
 switched off, a sentence decodes in 2.3 s instead of 0.9 s, and triggering *mid*-sentence
-stops keeping up. Numbers in [PERFORMANCE.md](docs/PERFORMANCE.md).
+stops keeping up.

@@ -1,4 +1,4 @@
-//! End-to-end test of the Phase 2 path: import files, build a group, play from it.
+//! End-to-end test of the library path: import files, build a group, play from it.
 //!
 //! This drives the same code the UI drives, minus Tauri's command wrapper — a real
 //! database, real files on disk, and the real audio engine. It plays audio very

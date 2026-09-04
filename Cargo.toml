@@ -1,7 +1,5 @@
 [workspace]
 resolver = "2"
-# Crates are added as their phase lands them (see docs/ROADMAP.md) rather than
-# created as empty stubs.
 members = [
     "src-tauri",
     "crates/detect",
@@ -15,13 +13,13 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 rust-version = "1.85"
 
-# Pinned deliberately. See docs/DEPENDENCIES.md — every version here was verified
-# against the crates.io registry on 2026-09-04, not recalled from memory.
+# Pinned deliberately: every version here was verified against the crates.io registry
+# on 2026-09-04, not recalled from memory.
 [workspace.dependencies]
 anyhow = "1"
 thiserror = "2"

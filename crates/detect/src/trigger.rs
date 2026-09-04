@@ -308,7 +308,7 @@ impl TriggerEngine {
 ///
 /// The matched span rather than the whole transcript: a partial transcript and the final
 /// one differ in their tails but share the phrase that fired the event, and firing twice
-/// for one swing is exactly what the spec forbids.
+/// for one swing is exactly what must not happen.
 fn span_key(candidate: &Candidate) -> String {
     candidate.matched_span.clone()
 }

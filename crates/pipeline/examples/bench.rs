@@ -1,6 +1,7 @@
 //! Measures the pipeline stages on this machine.
 //!
-//! Every number in `docs/PERFORMANCE.md` comes from this program. Run with:
+//! Every performance number quoted anywhere in this repository comes from this
+//! program, measured on the machine it is quoted for. Run with:
 //!
 //! ```text
 //! cargo run --release -p dndsound-pipeline --example bench
