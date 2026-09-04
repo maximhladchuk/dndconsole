@@ -1,4 +1,4 @@
-import type { ImportReport, SelectionMode, Sound, SoundGroup } from '../types/api';
+import type { GroupCount, ImportReport, SelectionMode, Sound, SoundGroup } from '../types/api';
 
 import { call } from './tauri';
 
@@ -20,6 +20,7 @@ export const libraryService = {
   setTags: (id: number, tags: string[]) => call<string[]>('set_sound_tags', { id, tags }),
 
   listGroups: () => call<SoundGroup[]>('list_sound_groups'),
+  groupCounts: () => call<GroupCount[]>('sound_group_counts'),
   createGroup: (name: string) => call<SoundGroup>('create_sound_group', { name }),
   updateGroup: (
     id: number,

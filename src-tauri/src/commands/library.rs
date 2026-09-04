@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use dndsound_store::sounds::{Sound, SoundGroup};
+use dndsound_store::sounds::{GroupCount, Sound, SoundGroup};
 use tauri::State;
 
 use crate::commands::app::Res;
@@ -157,6 +157,12 @@ pub fn rescan_sounds(state: State<'_, AppState>) -> Res<Vec<Sound>> {
 #[tauri::command]
 pub fn list_sound_groups(state: State<'_, AppState>) -> Res<Vec<SoundGroup>> {
     state.with_db(|db| Ok(db.sounds().list_groups()?))
+}
+
+/// How many sounds each group holds — one query behind the picker's counts.
+#[tauri::command]
+pub fn sound_group_counts(state: State<'_, AppState>) -> Res<Vec<GroupCount>> {
+    state.with_db(|db| Ok(db.sounds().group_counts()?))
 }
 
 #[tauri::command]

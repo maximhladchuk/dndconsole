@@ -13,6 +13,7 @@
 //! silent moment at the table whenever the network hiccups.
 
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, MutexGuard};
 
 use dndsound_pack::{Manifest, ManifestSound, THEMES};
 use dndsound_sound::probe;
@@ -67,9 +68,22 @@ pub fn is_installed(db: &Db) -> Result<bool, CommandError> {
     Ok(have >= manifest.sounds.len())
 }
 
+/// Take the database lock, recovering a poisoned mutex the way `AppState` does.
+fn lock(db: &Mutex<Db>) -> MutexGuard<'_, Db> {
+    db.lock().unwrap_or_else(|poisoned| {
+        tracing::warn!("database mutex was poisoned by an earlier panic; recovering");
+        poisoned.into_inner()
+    })
+}
+
 /// Download whatever is missing and wire the groups up to their events.
+///
+/// Takes the mutex rather than a `&Db` so the lock is released between sounds. A full
+/// install is a minute of downloading, and holding the database for that whole minute
+/// leaves every other screen waiting on its first query — the window looks frozen even
+/// though the install is running exactly as it should.
 pub fn install(
-    db: &Db,
+    db: &Mutex<Db>,
     cache_dir: &Path,
     mut on_progress: impl FnMut(InstallProgress),
 ) -> Result<InstallReport, CommandError> {
@@ -82,9 +96,12 @@ pub fn install(
         .map_err(|e| CommandError::new("io", format!("could not create the sound cache: {e}")))?;
 
     for theme in THEMES {
-        let group = match db.sounds().group_by_name(theme.group_name)? {
-            Some(existing) => existing,
-            None => db.sounds().create_group(theme.group_name)?,
+        let group = {
+            let guard = lock(db);
+            match guard.sounds().group_by_name(theme.group_name)? {
+                Some(existing) => existing,
+                None => guard.sounds().create_group(theme.group_name)?,
+            }
         };
 
         for sound in manifest.sounds_for(theme.event_id) {
@@ -95,23 +112,28 @@ pub fn install(
                 current: sound.name.clone(),
             });
 
-            match install_one(db, cache_dir, sound) {
-                Ok(Installed { id, from_cache }) => {
-                    db.sounds().add_to_group(group.id, id)?;
-                    if from_cache {
-                        report.reused += 1;
-                    } else {
-                        report.downloaded += 1;
-                    }
-                }
+            // Fetched with the lock released. Only the import that follows needs it,
+            // and that is measured in microseconds against a download's ~250 ms.
+            let installed = fetch_one(cache_dir, sound).and_then(|fetched| {
+                let guard = lock(db);
+                let id = import_one(&guard, sound, &fetched)?;
+                guard.sounds().add_to_group(group.id, id)?;
+                Ok(fetched.from_cache)
+            });
+
+            match installed {
+                Ok(true) => report.reused += 1,
+                Ok(false) => report.downloaded += 1,
                 Err(e) => report.failed.push(format!("{}: {}", sound.name, e.message)),
             }
         }
 
         // Point the event at the group only once it has something in it, so a failed
         // download never leaves an event aimed at silence.
-        if !db.sounds().group_members(group.id)?.is_empty() {
-            db.events()
+        let guard = lock(db);
+        if !guard.sounds().group_members(group.id)?.is_empty() {
+            guard
+                .events()
                 .set_sound_group(theme.event_id, Some(group.id))?;
             report.groups.push(theme.group_name.to_string());
         }
@@ -139,11 +161,11 @@ pub fn install(
 ///
 /// Only sounds marked as coming from Freesound are considered. Anything imported locally
 /// is left strictly alone.
-fn prune(db: &Db, manifest: &Manifest) -> Result<usize, CommandError> {
+fn prune(db: &Mutex<Db>, manifest: &Manifest) -> Result<usize, CommandError> {
     let wanted: std::collections::HashSet<String> =
         manifest.sounds.iter().map(|s| s.id.to_string()).collect();
 
-    let stale: Vec<_> = db
+    let stale: Vec<_> = lock(db)
         .sounds()
         .list()?
         .into_iter()
@@ -158,31 +180,34 @@ fn prune(db: &Db, manifest: &Manifest) -> Result<usize, CommandError> {
             license = %sound.provenance.license,
             "removing a sound that is no longer in the pack"
         );
-        db.sounds().delete(sound.id)?;
+        lock(db).sounds().delete(sound.id)?;
     }
 
     // Groups an older pack created, now empty and unreferenced.
-    for group in db.sounds().list_groups()? {
-        let empty = db.sounds().group_members(group.id)?.is_empty();
+    let groups = lock(db).sounds().list_groups()?;
+    for group in groups {
+        let guard = lock(db);
+        let empty = guard.sounds().group_members(group.id)?.is_empty();
         let unused = !THEMES.iter().any(|t| t.group_name == group.name);
         if empty && unused {
-            db.sounds().delete_group(group.id)?;
+            guard.sounds().delete_group(group.id)?;
         }
     }
 
     Ok(stale.len())
 }
 
-struct Installed {
-    id: i64,
+/// A manifest sound that is on disk and known to be readable, but not yet in the
+/// library. Splitting the fetch from the import is what lets the database lock stay
+/// released across the slow part.
+struct Fetched {
+    path: PathBuf,
+    metadata: dndsound_sound::SoundMetadata,
     from_cache: bool,
 }
 
-fn install_one(
-    db: &Db,
-    cache_dir: &Path,
-    sound: &ManifestSound,
-) -> Result<Installed, CommandError> {
+/// Get the file, using the cache when it holds something playable. Touches no database.
+fn fetch_one(cache_dir: &Path, sound: &ManifestSound) -> Result<Fetched, CommandError> {
     let target = cache_path(cache_dir, sound);
     let mut from_cache = target.is_file();
 
@@ -212,14 +237,23 @@ fn install_one(
         }
     };
 
+    Ok(Fetched {
+        path: target,
+        metadata,
+        from_cache,
+    })
+}
+
+/// Record a fetched file in the library. Holds the lock for one insert.
+fn import_one(db: &Db, sound: &ManifestSound, fetched: &Fetched) -> Result<i64, CommandError> {
     let stored = db.sounds().import(&NewSound {
         display_name: sound.name.replace(['_', '-'], " "),
-        file_path: target.to_string_lossy().to_string(),
+        file_path: fetched.path.to_string_lossy().to_string(),
         managed: true,
-        format: metadata.format,
-        duration_ms: metadata.duration_ms,
-        sample_rate: metadata.sample_rate,
-        channels: metadata.channels,
+        format: fetched.metadata.format.clone(),
+        duration_ms: fetched.metadata.duration_ms,
+        sample_rate: fetched.metadata.sample_rate,
+        channels: fetched.metadata.channels,
         provenance: Provenance {
             source: "freesound".to_string(),
             source_id: sound.id.to_string(),
@@ -232,10 +266,7 @@ fn install_one(
         },
     })?;
 
-    Ok(Installed {
-        id: stored.id,
-        from_cache,
-    })
+    Ok(stored.id)
 }
 
 /// Fetch one preview to a temporary file and rename it into place.

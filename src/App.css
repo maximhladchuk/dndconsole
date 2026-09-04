@@ -582,6 +582,65 @@ body {
   transition: width 90ms linear;
 }
 
+/* Progress of something that finishes, as opposed to the meter above, which shows a
+   live level. Both the setup checklist and the sound pack panel use it; it had no
+   styles at all until now, so an install looked like nothing was happening. */
+.level {
+  display: block;
+  height: 6px;
+  margin-top: 6px;
+  background: var(--bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.level__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 160ms linear;
+}
+
+/* No total to divide by yet — move something rather than show an empty bar. */
+.level__fill.is-indeterminate {
+  width: 35%;
+  animation: level-sweep 1.1s ease-in-out infinite;
+}
+
+@keyframes level-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(285%);
+  }
+}
+
+/* A step that is working: the number is replaced by this. */
+.spinner {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--panel-border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner,
+  .level__fill.is-indeterminate {
+    animation: none;
+  }
+}
+
 /* ---------------------------------------------------------------- session -- */
 .session__state {
   display: flex;
@@ -960,6 +1019,14 @@ body {
   border-color: transparent;
   background: rgba(122, 184, 122, 0.18);
   color: #7ab87a;
+}
+
+.step.is-working {
+  border-color: var(--accent);
+}
+
+.step.is-working .step__mark {
+  border-color: transparent;
 }
 
 .step__body {

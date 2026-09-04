@@ -118,6 +118,12 @@ export interface PackProgress {
   current: string;
 }
 
+/** Serialized from `dndsound_store::sounds::GroupCount`. */
+export interface GroupCount {
+  groupId: number;
+  sounds: number;
+}
+
 export type SelectionMode = 'random' | 'weighted' | 'sequential';
 
 /** Serialized from `dndsound_store::sounds::SoundGroup`. */

@@ -59,6 +59,7 @@ pub fn run() {
             commands::library::set_sound_tags,
             commands::library::rescan_sounds,
             commands::library::list_sound_groups,
+            commands::library::sound_group_counts,
             commands::library::create_sound_group,
             commands::library::update_sound_group,
             commands::library::delete_sound_group,

@@ -8,6 +8,7 @@
 //! Skipped when `DNDSOUND_OFFLINE` is set, for building on a machine with no network.
 
 use std::path::PathBuf;
+use std::sync::Mutex;
 
 use dndsound_lib::sound_pack;
 use dndsound_pack::{Manifest, THEMES};
@@ -27,10 +28,12 @@ fn cache_dir(name: &str) -> PathBuf {
     dir
 }
 
-fn seeded_db() -> Db {
+/// `install` takes the mutex, not the database, so it can let go of the lock between
+/// downloads. Tests hold the same shape and reach through it for their assertions.
+fn seeded_db() -> Mutex<Db> {
     let db = Db::open_in_memory().expect("db");
     db.events().seed_if_empty().expect("seed");
-    db
+    Mutex::new(db)
 }
 
 #[test]
@@ -54,12 +57,22 @@ fn installing_the_pack_gives_every_event_playable_sounds() {
     assert_eq!(report.groups.len(), THEMES.len());
 
     for theme in THEMES {
-        let event = db.events().get(theme.event_id).expect("event");
+        let event = db
+            .lock()
+            .unwrap()
+            .events()
+            .get(theme.event_id)
+            .expect("event");
         let group_id = event
             .sound_group_id
             .unwrap_or_else(|| panic!("{} has no sound group", theme.event_id));
 
-        let members = db.sounds().group_members(group_id).expect("members");
+        let members = db
+            .lock()
+            .unwrap()
+            .sounds()
+            .group_members(group_id)
+            .expect("members");
         assert_eq!(members.len(), theme.sound_ids.len(), "{}", theme.event_id);
 
         for sound in &members {
@@ -105,8 +118,15 @@ fn a_sound_from_an_older_pack_is_removed() {
 
     // A sound an earlier version of the pack installed, no longer in the manifest — and
     // deliberately under a licence this version does not allow.
-    let group = db.sounds().create_group("Old group").expect("group");
+    let group = db
+        .lock()
+        .unwrap()
+        .sounds()
+        .create_group("Old group")
+        .expect("group");
     let stale = db
+        .lock()
+        .unwrap()
         .sounds()
         .import(&dndsound_store::sounds::NewSound {
             display_name: "Retired".into(),
@@ -126,10 +146,16 @@ fn a_sound_from_an_older_pack_is_removed() {
             },
         })
         .expect("import");
-    db.sounds().add_to_group(group.id, stale.id).expect("add");
+    db.lock()
+        .unwrap()
+        .sounds()
+        .add_to_group(group.id, stale.id)
+        .expect("add");
 
     // A file the user brought themselves must survive untouched.
     let mine = db
+        .lock()
+        .unwrap()
         .sounds()
         .import(&dndsound_store::sounds::NewSound {
             display_name: "Mine".into(),
@@ -149,17 +175,25 @@ fn a_sound_from_an_older_pack_is_removed() {
         report.pruned, 1,
         "the retired sound should have been removed"
     );
-    assert!(db.sounds().get(stale.id).is_err(), "it is still there");
-    assert!(db.sounds().get(mine.id).is_ok(), "a local file was deleted");
     assert!(
-        db.sounds()
+        db.lock().unwrap().sounds().get(stale.id).is_err(),
+        "it is still there"
+    );
+    assert!(
+        db.lock().unwrap().sounds().get(mine.id).is_ok(),
+        "a local file was deleted"
+    );
+    assert!(
+        db.lock()
+            .unwrap()
+            .sounds()
             .group_by_name("Old group")
             .expect("query")
             .is_none(),
         "the emptied group should have gone too"
     );
 
-    for sound in db.sounds().list().expect("list") {
+    for sound in db.lock().unwrap().sounds().list().expect("list") {
         assert!(
             sound.provenance.source != "freesound" || sound.provenance.license == "CC0",
             "{} is {} — the pack promises CC0 only",
@@ -181,26 +215,33 @@ fn installing_twice_reuses_the_cache_and_duplicates_nothing() {
     let dir = cache_dir("twice");
 
     let first = sound_pack::install(&db, &dir, |_| {}).expect("first");
-    let before = db.sounds().count().expect("count");
+    let before = db.lock().unwrap().sounds().count().expect("count");
 
     let second = sound_pack::install(&db, &dir, |_| {}).expect("second");
 
     assert_eq!(second.downloaded, 0, "the second run hit the network");
     assert_eq!(second.reused, first.downloaded);
     assert_eq!(
-        db.sounds().count().expect("count"),
+        db.lock().unwrap().sounds().count().expect("count"),
         before,
         "sounds were duplicated"
     );
 
     for theme in THEMES {
         let group = db
+            .lock()
+            .unwrap()
             .sounds()
             .group_by_name(theme.group_name)
             .expect("group")
             .expect("exists");
         assert_eq!(
-            db.sounds().group_members(group.id).expect("members").len(),
+            db.lock()
+                .unwrap()
+                .sounds()
+                .group_members(group.id)
+                .expect("members")
+                .len(),
             theme.sound_ids.len(),
             "{} gained duplicate members",
             theme.group_name

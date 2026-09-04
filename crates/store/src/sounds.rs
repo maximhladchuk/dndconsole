@@ -102,6 +102,14 @@ pub struct SoundGroup {
     pub volume: f32,
 }
 
+/// One group's size, for the picker.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupCount {
+    pub group_id: i64,
+    pub sounds: i64,
+}
+
 pub struct SoundsRepo<'a> {
     conn: &'a Connection,
 }
@@ -429,6 +437,31 @@ impl<'a> SoundsRepo<'a> {
 
     /// Members in playback order. Disabled sounds are included; filtering them is the
     /// caller's decision, and the editor needs to see them.
+    /// How many sounds each group holds, in one query.
+    ///
+    /// The picker shows a count beside every group. Asking for the members of all
+    /// thirty-six to display thirty-six numbers is thirty-six round trips, so the count
+    /// used to appear only for the group you had already clicked — which read as the
+    /// number arriving late rather than as it never having been asked for.
+    ///
+    /// Counts every member, matching `group_members`. A disabled sound is still in the
+    /// group; whether it will be picked is the group screen's business.
+    pub fn group_counts(&self) -> Result<Vec<GroupCount>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT g.id, COUNT(m.sound_id)
+             FROM sound_groups g
+             LEFT JOIN sound_group_members m ON m.group_id = g.id
+             GROUP BY g.id",
+        )?;
+        let rows = stmt.query_map([], |row| {
+            Ok(GroupCount {
+                group_id: row.get(0)?,
+                sounds: row.get(1)?,
+            })
+        })?;
+        Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)
+    }
+
     pub fn group_members(&self, group_id: i64) -> Result<Vec<Sound>> {
         let mut stmt = self.conn.prepare(concat!(
             "SELECT ",
@@ -686,6 +719,47 @@ mod tests {
 
         assert!(r.add_to_group(999, s.id).is_err(), "missing group");
         assert!(r.add_to_group(group.id, 999).is_err(), "missing sound");
+    }
+
+    #[test]
+    fn every_group_reports_its_size_including_the_empty_ones() {
+        let db = Db::open_in_memory().expect("open");
+        let r = repo(&db);
+        let full = r.create_group("Full").expect("group");
+        let empty = r.create_group("Empty").expect("group");
+        for name in ["A", "B", "C"] {
+            let sound = r
+                .import(&new_sound(name, &format!("/s/{name}.wav")))
+                .expect("import");
+            r.add_to_group(full.id, sound.id).expect("add");
+        }
+
+        let counts = r.group_counts().expect("counts");
+        let of = |id: i64| counts.iter().find(|c| c.group_id == id).map(|c| c.sounds);
+
+        // The empty group has to be present, not missing: the picker shows a zero, and a
+        // group absent from the list would render a blank instead.
+        assert_eq!(of(full.id), Some(3));
+        assert_eq!(of(empty.id), Some(0));
+        assert_eq!(counts.len(), 2);
+    }
+
+    #[test]
+    fn a_count_matches_what_the_group_actually_contains() {
+        let db = Db::open_in_memory().expect("open");
+        let r = repo(&db);
+        let group = r.create_group("G").expect("group");
+        let a = r.import(&new_sound("A", "/s/a.wav")).expect("import");
+        let b = r.import(&new_sound("B", "/s/b.wav")).expect("import");
+        r.add_to_group(group.id, a.id).expect("add");
+        r.add_to_group(group.id, b.id).expect("add");
+        r.set_enabled(b.id, false).expect("disable");
+        r.delete(a.id).expect("delete");
+
+        let members = r.group_members(group.id).expect("members").len() as i64;
+        let counted = r.group_counts().expect("counts")[0].sounds;
+        assert_eq!(counted, members, "the count and the list must not disagree");
+        assert_eq!(counted, 1, "a disabled sound is still a member");
     }
 
     #[test]

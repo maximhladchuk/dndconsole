@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 
+import { useLibraryStore } from '../../stores/libraryStore';
 import { useSoundPackStore } from '../../stores/soundPackStore';
 import { Panel } from '../../ui/Panel';
 import { ErrorBanner } from '../../ui/ErrorBanner';
@@ -13,6 +14,14 @@ import { ErrorBanner } from '../../ui/ErrorBanner';
  */
 export function SoundPackPanel() {
   const store = useSoundPackStore();
+  const reloadLibrary = useLibraryStore((state) => state.load);
+
+  // An install creates groups and fills them. The picker beside this panel is showing
+  // the library from before that, so it has to be asked again.
+  const install = async () => {
+    await store.install();
+    await reloadLibrary();
+  };
 
   useEffect(() => {
     void store.refresh();
@@ -63,7 +72,7 @@ export function SoundPackPanel() {
         </>
       ) : (
         <div className="library__actions">
-          <button type="button" onClick={() => void store.install()}>
+          <button type="button" onClick={() => void install()}>
             {status?.installed ? 'Перевірити й полагодити' : 'Завантажити звуки'}
           </button>
         </div>

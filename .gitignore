@@ -10,8 +10,11 @@ src-tauri/target/
 .DS_Store
 *.log
 
-# local model cache, if a developer points it at the repo
-models/
+# Local model cache, if a developer points it at the repo. Anchored to the root: the
+# bare `models/` this used to say matched every directory of that name at any depth,
+# which silently kept `crates/models/` and `src/features/models/` out of the repository
+# — a clone could not build, and nothing in the local checkout ever hinted at it.
+/models/
 
 # API credentials. Never committed.
 .env

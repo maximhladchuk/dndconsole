@@ -39,12 +39,16 @@ pub fn sound_pack_status(state: State<'_, AppState>) -> Res<PackStatus> {
 }
 
 /// Download whatever is missing. Safe to run repeatedly: cached files are reused.
-#[tauri::command]
+///
+/// `async` is load-bearing. A plain `#[tauri::command]` runs on the main thread, and a
+/// full install is a minute of downloading: the window stops drawing, the cursor turns
+/// into a spinner, and none of the progress events below can be delivered, because
+/// delivering them needs the very thread the install is sitting on. Marked `async`,
+/// Tauri runs it on the thread pool and the progress bar actually moves.
+#[tauri::command(async)]
 pub fn install_sound_pack(app: AppHandle, state: State<'_, AppState>) -> Res<InstallReport> {
     let cache_dir = state.library_dir().join("pack");
-    state.with_db(|db| {
-        sound_pack::install(db, &cache_dir, |progress| {
-            let _ = app.emit(PROGRESS_EVENT, progress);
-        })
+    sound_pack::install(&state.db_handle(), &cache_dir, |progress| {
+        let _ = app.emit(PROGRESS_EVENT, progress);
     })
 }

@@ -15,6 +15,8 @@ interface LibraryState {
   sounds: Sound[];
   groups: SoundGroup[];
   members: Record<number, Sound[]>;
+  /** Group id to how many sounds it holds, for every group at once. */
+  counts: Record<number, number>;
   selectedGroupId: number | null;
 
   loading: boolean;
@@ -76,13 +78,23 @@ export const useLibraryStore = create<LibraryState>((set, get) => {
 
   const refreshMembers = async (groupId: number) => {
     const members = await libraryService.groupMembers(groupId);
-    set((state) => ({ members: { ...state.members, [groupId]: members } }));
+    set((state) => ({
+      members: { ...state.members, [groupId]: members },
+      counts: { ...state.counts, [groupId]: members.length },
+    }));
+  };
+
+  /** Every group's size in one call, so the picker never shows a blank count. */
+  const refreshCounts = async () => {
+    const counts = await libraryService.groupCounts();
+    set({ counts: Object.fromEntries(counts.map((c) => [c.groupId, c.sounds])) });
   };
 
   return {
     sounds: [],
     groups: [],
     members: {},
+    counts: {},
     selectedGroupId: null,
     loading: true,
     busy: false,
@@ -92,11 +104,17 @@ export const useLibraryStore = create<LibraryState>((set, get) => {
     load: async () => {
       set({ loading: true, notice: null });
       try {
-        const [sounds, groups] = await Promise.all([
+        const [sounds, groups, counts] = await Promise.all([
           libraryService.listSounds(),
           libraryService.listGroups(),
+          libraryService.groupCounts(),
         ]);
-        set({ sounds, groups, loading: false });
+        set({
+          sounds,
+          groups,
+          counts: Object.fromEntries(counts.map((c) => [c.groupId, c.sounds])),
+          loading: false,
+        });
 
         const selected = get().selectedGroupId ?? groups[0]?.id ?? null;
         if (selected !== null) {
@@ -169,6 +187,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => {
       guard(async () => {
         const sounds = await libraryService.remove(id);
         set({ sounds });
+        await refreshCounts();
         const selected = get().selectedGroupId;
         if (selected !== null) await refreshMembers(selected);
       }),
@@ -197,19 +216,26 @@ export const useLibraryStore = create<LibraryState>((set, get) => {
         const groups = await libraryService.deleteGroup(id);
         const next = groups[0]?.id ?? null;
         set({ groups, selectedGroupId: next });
+        await refreshCounts();
         if (next !== null) await refreshMembers(next);
       }),
 
     addToGroup: (groupId, soundId) =>
       guard(async () => {
         const members = await libraryService.addToGroup(groupId, soundId);
-        set((state) => ({ members: { ...state.members, [groupId]: members } }));
+        set((state) => ({
+          members: { ...state.members, [groupId]: members },
+          counts: { ...state.counts, [groupId]: members.length },
+        }));
       }),
 
     removeFromGroup: (groupId, soundId) =>
       guard(async () => {
         const members = await libraryService.removeFromGroup(groupId, soundId);
-        set((state) => ({ members: { ...state.members, [groupId]: members } }));
+        set((state) => ({
+          members: { ...state.members, [groupId]: members },
+          counts: { ...state.counts, [groupId]: members.length },
+        }));
       }),
 
     preview: (id) =>

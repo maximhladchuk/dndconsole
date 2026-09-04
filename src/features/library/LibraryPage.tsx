@@ -48,7 +48,7 @@ export function LibraryPage() {
                     onClick={() => void store.selectGroup(group.id)}
                   >
                     <span>{group.name}</span>
-                    <span className="picker__count">{store.members[group.id]?.length ?? ''}</span>
+                    <span className="picker__count">{store.counts[group.id] ?? ''}</span>
                   </button>
                 </li>
               ))}

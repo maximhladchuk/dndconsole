@@ -46,7 +46,10 @@ pub fn list_models(state: State<'_, AppState>) -> Res<Vec<ModelInfo>> {
 ///
 /// Progress is throttled to roughly one event per megabyte: a 547 MB model would
 /// otherwise emit thousands of IPC messages for a progress bar that only needs to move.
-#[tauri::command]
+///
+/// `async` so the download runs off the main thread; see `install_sound_pack` for what
+/// a long command does to the window without it.
+#[tauri::command(async)]
 pub fn download_model(app: AppHandle, state: State<'_, AppState>, id: String) -> Res<ModelInfo> {
     let mut last_reported = 0u64;
 
@@ -93,8 +96,8 @@ pub fn download_model(app: AppHandle, state: State<'_, AppState>, id: String) ->
 }
 
 /// Recompute a downloaded model's checksum and compare it with the one recorded when it
-/// was fetched.
-#[tauri::command]
+/// was fetched. Hashing half a gigabyte is not a main-thread job either.
+#[tauri::command(async)]
 pub fn verify_model(state: State<'_, AppState>, id: String) -> Res<String> {
     state.models().verify(&id).map_err(model_error)
 }
