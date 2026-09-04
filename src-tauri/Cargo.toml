@@ -1,0 +1,42 @@
+[package]
+name = "dndsound"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Voice-triggered sound engine for Dungeon Masters"
+
+[lib]
+# The `_lib` suffix keeps the library name distinct from the binary name,
+# which otherwise collides on Windows. See tauri-apps/tauri#8519.
+name = "dndsound_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+dndsound-detect.workspace = true
+dndsound-models.workspace = true
+dndsound-pipeline.workspace = true
+dndsound-semantic.workspace = true
+dndsound-freesound.workspace = true
+dndsound-pack.workspace = true
+ureq = "3"
+dndsound-sound.workspace = true
+dndsound-store.workspace = true
+
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+hound.workspace = true
+dndsound-detect.workspace = true
+dndsound-models.workspace = true

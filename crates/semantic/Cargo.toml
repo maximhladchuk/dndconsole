@@ -1,0 +1,16 @@
+[package]
+name = "dndsound-semantic"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dndsound-detect.workspace = true
+# Same exact pin as the pipeline: two ort versions cannot coexist, because each links
+# its own copy of ONNX Runtime. See docs/DECISIONS.md DR-002.
+ort = "=2.0.0-rc.13"
+tokenizers = { version = "0.23", default-features = false, features = ["onig"] }
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true

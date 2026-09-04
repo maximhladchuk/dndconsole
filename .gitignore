@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+target/
+src-tauri/target/
+
+# editors / OS
+.DS_Store
+*.log
+
+# local model cache, if a developer points it at the repo
+models/
+
+# API credentials. Never committed.
+.env
+.env.local
+freesound.json

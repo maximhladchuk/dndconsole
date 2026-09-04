@@ -1,0 +1,28 @@
+[package]
+name = "dndsound-pipeline"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+cpal = "0.18"
+# Pinned exactly: ort is at release candidate and two rc versions cannot coexist,
+# because each links its own copy of ONNX Runtime. See docs/DECISIONS.md DR-002.
+ort = "=2.0.0-rc.13"
+dndsound-models.workspace = true
+rubato = "5"
+audioadapter-buffers = "5"
+hound.workspace = true
+rtrb = "0.4"
+# Metal keeps the encoder on the GPU. Core ML is deliberately not enabled: it would add
+# a 1.1 GB download for the encoder alone, and the Metal path is fast enough to measure
+# first. See docs/DECISIONS.md DR-001.
+whisper-rs = { version = "0.16", features = ["metal"] }
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+hound.workspace = true
+serde_json.workspace = true

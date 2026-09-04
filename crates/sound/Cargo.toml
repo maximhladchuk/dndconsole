@@ -1,0 +1,16 @@
+[package]
+name = "dndsound-sound"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+kira = "0.12"
+# Probing metadata at import time without decoding the whole file. kira already
+# depends on symphonia; this is the same library used directly.
+symphonia = { version = "0.6", features = ["wav", "pcm", "mp3", "ogg", "vorbis", "flac"] }
+lru = "0.18"
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true

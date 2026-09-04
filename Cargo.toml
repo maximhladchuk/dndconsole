@@ -1,0 +1,58 @@
+[workspace]
+resolver = "2"
+# Crates are added as their phase lands them (see docs/ROADMAP.md) rather than
+# created as empty stubs.
+members = [
+    "src-tauri",
+    "crates/detect",
+    "crates/freesound",
+    "crates/models",
+    "crates/pack",
+    "crates/pipeline",
+    "crates/semantic",
+    "crates/sound",
+    "crates/store",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.85"
+
+# Pinned deliberately. See docs/DEPENDENCIES.md — every version here was verified
+# against the crates.io registry on 2026-09-04, not recalled from memory.
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+hound = "3.5"
+
+# refinery-core 0.9.2 supports rusqlite up to 0.39, and libsqlite3-sys is a
+# `links` crate, so only one version can exist in the graph. Verified 2026-09-04.
+rusqlite = { version = "0.39", features = ["bundled"] }
+refinery = { version = "0.9.2", features = ["rusqlite"] }
+
+dndsound-detect = { path = "crates/detect" }
+dndsound-freesound = { path = "crates/freesound" }
+dndsound-models = { path = "crates/models" }
+dndsound-pack = { path = "crates/pack" }
+dndsound-pipeline = { path = "crates/pipeline" }
+dndsound-semantic = { path = "crates/semantic" }
+dndsound-sound = { path = "crates/sound" }
+dndsound-store = { path = "crates/store" }
+
+[profile.dev]
+# whisper.cpp / ONNX Runtime are unusably slow when their dependencies are built
+# unoptimised, so optimise dependencies even in debug builds.
+opt-level = 0
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+lto = true
+codegen-units = 1
