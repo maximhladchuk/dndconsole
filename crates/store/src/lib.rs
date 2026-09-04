@@ -142,6 +142,74 @@ pub fn now_ms() -> i64 {
 mod tests {
     use super::*;
 
+    /// An applied migration is immutable, and nothing enforces that but this.
+    ///
+    /// refinery checksums each file and refuses to open a database whose recorded
+    /// checksum for a version does not match the file on disk. That check runs at
+    /// startup against a real database, which means the way you find out you edited a
+    /// shipped migration is that **every existing installation stops opening**:
+    ///
+    /// ```text
+    /// database migration failed: applied migration V1__initial is different
+    /// than filesystem one V1__initial
+    /// ```
+    ///
+    /// That is exactly what happened, and it happened over two words in a comment. A
+    /// fresh database migrates perfectly, so no other test in this suite noticed. This
+    /// pins the checksums so the mistake fails here in milliseconds instead.
+    ///
+    /// **If this test fails, do not update the numbers.** Put the migration file back
+    /// and add a new one. The only legitimate reason to touch this list is appending a
+    /// line for a migration that has never shipped.
+    #[test]
+    fn a_shipped_migration_is_never_edited() {
+        let expected: &[(&str, u64)] = &[
+            ("V1__initial.sql", 3_133_430_064_156_249_118),
+            ("V2__sound_provenance.sql", 9_281_310_919_201_998_070),
+            ("V3__seed_sync.sql", 4_120_177_022_060_816_377),
+            ("V4__ukrainian_group_names.sql", 7_671_577_894_362_603_438),
+        ];
+
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/migrations");
+        let mut on_disk: Vec<String> = std::fs::read_dir(&dir)
+            .expect("migrations directory")
+            .map(|entry| {
+                entry
+                    .expect("entry")
+                    .file_name()
+                    .to_string_lossy()
+                    .to_string()
+            })
+            .collect();
+        on_disk.sort();
+
+        let known: Vec<String> = expected.iter().map(|(name, _)| name.to_string()).collect();
+        assert_eq!(
+            on_disk, known,
+            "a migration was added or removed; append it to the list above"
+        );
+
+        for (name, checksum) in expected {
+            let bytes = std::fs::read(dir.join(name)).expect(name);
+            assert_eq!(
+                fnv1a(&bytes),
+                *checksum,
+                "{name} has been edited. Applied migrations are immutable: put the file \
+                 back and write a new migration instead."
+            );
+        }
+    }
+
+    /// FNV-1a. Only has to be stable and dependency-free; it is not a security boundary.
+    fn fnv1a(bytes: &[u8]) -> u64 {
+        let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+        for byte in bytes {
+            hash ^= u64::from(*byte);
+            hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+        hash
+    }
+
     #[test]
     fn migrations_run_on_a_fresh_database() {
         let db = Db::open_in_memory().expect("open");
