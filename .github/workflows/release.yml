@@ -68,18 +68,36 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: --target ${{ matrix.target }}
-          tagName: ${{ github.ref_name }}
-          releaseName: dndsound ${{ github.ref_name }}
+          # Only a tag publishes anything. tauri-action creates a release whenever
+          # tagName is set, and on a manual run github.ref_name is the branch — which
+          # would produce a release tagged "main". A manual run builds and keeps the
+          # installers as artifacts instead, which is how the build gets proved without
+          # committing to a version.
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          releaseName: ${{ github.ref_type == 'tag' && format('dndsound {0}', github.ref_name) || '' }}
           releaseDraft: true
           releaseBody: |
             Завантаж файл для своєї системи і встанови.
 
-            **macOS** — `.dmg`. Збірка не підписана, тому при першому запуску: правий
-            клік на програмі → **Відкрити**. Звичайний подвійний клік Gatekeeper
-            заблокує.
+            **macOS** — `.dmg`. Перетягни програму в «Програми». Збірка не підписана,
+            тому при першому запуску система скаже, що не може перевірити розробника:
+            **Системні параметри → Конфіденційність і безпека**, прогорни донизу і
+            натисни **Усе одно відкрити**. Якщо каже «пошкоджено», у Терміналі:
+            `xattr -dr com.apple.quarantine /Applications/dndsound.app`
 
             **Windows** — `.msi` або `.exe`. Збірка не підписана, тому SmartScreen
             покаже попередження: **Додатково → Виконати в будь-якому разі**.
 
             При першому запуску програма завантажить моделі розпізнавання (близько
             575 МБ) і набір звуків (13 МБ). Після цього інтернет не потрібен.
+
+      - name: Keep the installers from a manual run
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dndsound-${{ matrix.target }}
+          if-no-files-found: error
+          path: |
+            target/${{ matrix.target }}/release/bundle/**/*.dmg
+            target/${{ matrix.target }}/release/bundle/**/*.msi
+            target/${{ matrix.target }}/release/bundle/**/*.exe
